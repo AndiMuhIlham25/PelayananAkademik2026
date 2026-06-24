@@ -520,7 +520,6 @@
                 <th class="py-4 px-3">Pelapor</th>
                 <th class="py-4 px-3">Kategori</th>
                 <th class="py-4 px-3">Judul</th>
-                <th class="py-4 px-3">Prioritas</th>
                 <th class="py-4 px-3">Status</th>
               </tr>
             </thead>
@@ -674,7 +673,6 @@
         <td class="py-4 px-3">${data.status}</td>
         <td class="py-4 px-3">${data.kategori}</td>
         <td class="py-4 px-3">${data.judul}</td>
-        <td class="py-4 px-3">${data.prioritas}</td>
         <td class="py-4 px-3"><span class="px-3 py-1 rounded-full bg-orangex/10 text-orange-200 font-black text-xs">Menunggu</span></td>
       `;
 
@@ -695,10 +693,7 @@
       if (heroMahasiswa && data.status === "Mahasiswa") {
         heroMahasiswa.textContent = Number(heroMahasiswa.textContent || 0) + 1;
       }
-      if (heroUrgent && data.prioritas === "Urgent") {
-        heroUrgent.textContent = Number(heroUrgent.textContent || 0) + 1;
-      }
-
+    
       if (heroTicketList) {
         const existingEmpty = heroTicketList.querySelector(".text-center");
         if (existingEmpty) heroTicketList.innerHTML = "";
@@ -793,7 +788,6 @@
           <td class="py-4 px-3">${row.status || "-"}</td>
           <td class="py-4 px-3">${row.kategori || "-"}</td>
           <td class="py-4 px-3">${row.judul || "-"}</td>
-          <td class="py-4 px-3">${row.prioritas || "-"}</td>
           <td class="py-4 px-3"><span class="px-3 py-1 rounded-full ${statusBadge(row.statusAduan)} font-black text-xs">${row.statusAduan || "Menunggu"}</span></td>
         </tr>
       `).join("");
@@ -853,7 +847,6 @@
         kontak: document.getElementById("kontak").value.trim(),
         prodi: document.getElementById("prodi").value.trim(),
         kategori: document.getElementById("kategori").value,
-        prioritas: document.getElementById("prioritas").value,
         judul: document.getElementById("judul").value.trim(),
         detail: document.getElementById("detail").value.trim(),
         userAgent: navigator.userAgent
