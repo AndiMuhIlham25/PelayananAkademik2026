@@ -380,7 +380,7 @@
         <div class="glass rounded-[2rem] p-6 mt-7 border-orange-300/20 bg-orange-400/10">
           <h3 class="font-black text-orange-100">Catatan Penting</h3>
           <p class="text-sm text-slate-300 leading-7 mt-2">
-            Harus menggunakan <b>Gmail</b> agar balasan dan tindak lanjut pengaduan dapat dikirim kembali ke email Anda.
+            Harus menggunakan <b>Email Google/Gmail</b> atau kontak WhatsApp aktif agar balasan dan tindak lanjut pengaduan dapat dikirim kembali ke email Anda atau ke WA Anda.
           </p>
         </div>
       </div>
@@ -391,15 +391,19 @@
             <h3 class="text-2xl font-black tracking-[-.03em]">Form Pengaduan Akademik</h3>
             <p class="text-sm text-slate-400 mt-2">Isi data dengan jelas agar operator lebih cepat memproses aduan.</p>
           </div>
-          <span class="hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-cyanx/10 border border-cyanx/20 text-cyan-200 text-xs font-black">
-            ONLINE
+          <span id="serviceBadge" class="hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-orange-400/10 border border-orange-300/20 text-orange-100 text-xs font-black">
+            MENGECEK
           </span>
+        </div>
+
+        <div id="serviceNotice" class="mb-6 rounded-3xl border border-orange-300/20 bg-orange-400/10 px-5 py-4 text-sm text-orange-100 leading-7">
+          Mengecek status jam pelayanan. Form hanya dapat dikirim pukul <b>08.00–16.00 WITA</b>.
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5">
           <label class="grid gap-2 text-sm font-black text-slate-200">
             Nama Lengkap
-            <input id="nama" name="nama" required type="text" placeholder="Contoh: Ekha Putri" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
+            <input id="nama" name="nama" required type="text" placeholder="Contoh: Andi Muhammad Ilham" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
           </label>
 
           <label class="grid gap-2 text-sm font-black text-slate-200">
@@ -415,12 +419,12 @@
 
           <label class="grid gap-2 text-sm font-black text-slate-200">
             <span id="identityLabel">Stambuk / NIM / NIDN / NIP</span>
-            <input id="identitas" name="identitas" required type="text" placeholder="Contoh: F23121XXX / NIDN / NIP" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
+            <input id="identitas" name="identitas" required type="text" placeholder="Contoh: F5522530008 / NIDN / NIP" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
           </label>
 
           <label class="grid gap-2 text-sm font-black text-slate-200">
-           Email
-            <input id="kontak" name="kontak" required type="text" placeholder="Contoh: email@gmail.com" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
+            Kontak WhatsApp / Email
+            <input id="kontak" name="kontak" required type="text" placeholder="Contoh: 08xxxxxxxxxx / email@untad.ac.id" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
           </label>
 
           <label class="grid gap-2 text-sm font-black text-slate-200">
@@ -442,7 +446,7 @@
               <option>Layanan Akademik Fakultas</option>
             </select>
           </label>
-<!-- 
+
           <label class="grid gap-2 text-sm font-black text-slate-200 md:col-span-2">
             Prioritas
             <select id="prioritas" name="prioritas" required class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
@@ -452,7 +456,7 @@
               <option>Tinggi</option>
               <option>Urgent</option>
             </select>
-          </label> -->
+          </label>
 
           <label class="grid gap-2 text-sm font-black text-slate-200 md:col-span-2">
             Judul Aduan
@@ -467,12 +471,12 @@
 
         <div class="mt-7 flex flex-col sm:flex-row sm:items-center gap-4">
           <button id="submitBtn" class="inline-flex w-full sm:w-auto items-center justify-center gap-3 px-7 py-4 rounded-full bg-gradient-to-r from-bluex to-cyanx font-black shadow-glowBlue hover:scale-[1.02] transition">
-            <span id="submitText">Kirim Pengaduan</span>
+            <span id="submitText">Kirim ke Spreadsheet</span>
             <span id="submitLoader" class="loader hidden"></span>
           </button>
 
           <p class="text-xs text-slate-400 leading-6">
-            Data akan masuk ke Databse dan mengirim notifikasi email ke admin akademik Menunggu 1x24 Jam atau 2x24 Jam.
+            Data akan masuk ke Google Sheets dan mengirim notifikasi email ke admin akademik.
           </p>
         </div>
       </form>
@@ -483,7 +487,7 @@
         <p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Dashboard Mini</p>
         <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Preview aduan terbaru.</h2>
         <p class="text-slate-400 leading-8 mt-5">
-          Data permanennya masuk ke Google Sheets. Tabel di bawah preview data masuk setelah submit.
+          Data permanennya masuk ke Google Sheets. Tabel di bawah hanya preview lokal setelah submit.
         </p>
       </div>
 
@@ -520,6 +524,7 @@
                 <th class="py-4 px-3">Pelapor</th>
                 <th class="py-4 px-3">Kategori</th>
                 <th class="py-4 px-3">Judul</th>
+                <th class="py-4 px-3">Prioritas</th>
                 <th class="py-4 px-3">Status</th>
               </tr>
             </thead>
@@ -630,11 +635,14 @@
     const submitBtn = document.getElementById("submitBtn");
     const submitText = document.getElementById("submitText");
     const submitLoader = document.getElementById("submitLoader");
+    const serviceBadge = document.getElementById("serviceBadge");
+    const serviceNotice = document.getElementById("serviceNotice");
 
     let todayCount = 0;
     let waitCount = 0;
     let dosenCount = 0;
     let totalCount = 0;
+    let serviceIsOpen = false;
 
     function showToast(message, type = "success") {
       toast.textContent = message;
@@ -654,12 +662,25 @@
       }, 3800);
     }
 
+    function updateSubmitButtonState(isLoading = false) {
+      if (isLoading) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add("opacity-70", "cursor-not-allowed");
+        submitText.textContent = "Mengirim...";
+        submitLoader.classList.remove("hidden");
+        return;
+      }
+
+      submitLoader.classList.add("hidden");
+      submitBtn.disabled = !serviceIsOpen;
+      submitBtn.classList.toggle("opacity-70", !serviceIsOpen);
+      submitBtn.classList.toggle("cursor-not-allowed", !serviceIsOpen);
+      submitBtn.classList.toggle("hover:scale-[1.02]", serviceIsOpen);
+      submitText.textContent = serviceIsOpen ? "Kirim ke Spreadsheet" : "Pelayanan Tutup";
+    }
+
     function setLoading(isLoading) {
-      submitBtn.disabled = isLoading;
-      submitBtn.classList.toggle("opacity-70", isLoading);
-      submitBtn.classList.toggle("cursor-not-allowed", isLoading);
-      submitText.textContent = isLoading ? "Mengirim..." : "Kirim ke Spreadsheet";
-      submitLoader.classList.toggle("hidden", !isLoading);
+      updateSubmitButtonState(isLoading);
     }
 
     function addLocalRow(data, kodeAduan) {
@@ -673,6 +694,7 @@
         <td class="py-4 px-3">${data.status}</td>
         <td class="py-4 px-3">${data.kategori}</td>
         <td class="py-4 px-3">${data.judul}</td>
+        <td class="py-4 px-3">${data.prioritas}</td>
         <td class="py-4 px-3"><span class="px-3 py-1 rounded-full bg-orangex/10 text-orange-200 font-black text-xs">Menunggu</span></td>
       `;
 
@@ -693,7 +715,10 @@
       if (heroMahasiswa && data.status === "Mahasiswa") {
         heroMahasiswa.textContent = Number(heroMahasiswa.textContent || 0) + 1;
       }
-    
+      if (heroUrgent && data.prioritas === "Urgent") {
+        heroUrgent.textContent = Number(heroUrgent.textContent || 0) + 1;
+      }
+
       if (heroTicketList) {
         const existingEmpty = heroTicketList.querySelector(".text-center");
         if (existingEmpty) heroTicketList.innerHTML = "";
@@ -723,6 +748,7 @@
       const minutes = wita.getMinutes();
       const timeText = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
       const isOpen = hours >= 8 && hours < 16;
+      serviceIsOpen = isOpen;
 
       if (witaClock) witaClock.textContent = timeText;
       if (serviceStatusText) {
@@ -735,6 +761,22 @@
         serviceStatusMini.classList.toggle("text-green-200", isOpen);
         serviceStatusMini.classList.toggle("text-orange-200", !isOpen);
       }
+      if (serviceBadge) {
+        serviceBadge.textContent = isOpen ? "ONLINE" : "TUTUP";
+        serviceBadge.className = isOpen
+          ? "hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-greenx/10 border border-greenx/20 text-green-200 text-xs font-black"
+          : "hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-orange-400/10 border border-orange-300/20 text-orange-100 text-xs font-black";
+      }
+      if (serviceNotice) {
+        serviceNotice.className = isOpen
+          ? "mb-6 rounded-3xl border border-greenx/20 bg-greenx/10 px-5 py-4 text-sm text-green-100 leading-7"
+          : "mb-6 rounded-3xl border border-orange-300/20 bg-orange-400/10 px-5 py-4 text-sm text-orange-100 leading-7";
+        serviceNotice.innerHTML = isOpen
+          ? "Pelayanan sedang <b>terbuka</b>. Silakan kirim pengaduan Anda. Jam layanan aktif sampai <b>16.00 WITA</b>."
+          : "Pelayanan sedang <b>tutup</b>. Form pengaduan hanya bisa dikirim pukul <b>08.00–16.00 WITA</b>.";
+      }
+
+      updateSubmitButtonState(false);
     }
 
     function statusBadge(status) {
@@ -788,6 +830,7 @@
           <td class="py-4 px-3">${row.status || "-"}</td>
           <td class="py-4 px-3">${row.kategori || "-"}</td>
           <td class="py-4 px-3">${row.judul || "-"}</td>
+          <td class="py-4 px-3">${row.prioritas || "-"}</td>
           <td class="py-4 px-3"><span class="px-3 py-1 rounded-full ${statusBadge(row.statusAduan)} font-black text-xs">${row.statusAduan || "Menunggu"}</span></td>
         </tr>
       `).join("");
@@ -835,6 +878,13 @@
     form.addEventListener("submit", async function (event) {
       event.preventDefault();
 
+      updateServiceTime();
+
+      if (!serviceIsOpen) {
+        showToast("Pelayanan sedang tutup. Form hanya bisa dikirim pukul 08.00–16.00 WITA.", "error");
+        return;
+      }
+
       if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("PASTE_URL_WEB_APP")) {
         showToast("URL Google Apps Script belum dipasang di index.html.", "error");
         return;
@@ -847,6 +897,7 @@
         kontak: document.getElementById("kontak").value.trim(),
         prodi: document.getElementById("prodi").value.trim(),
         kategori: document.getElementById("kategori").value,
+        prioritas: document.getElementById("prioritas").value,
         judul: document.getElementById("judul").value.trim(),
         detail: document.getElementById("detail").value.trim(),
         userAgent: navigator.userAgent
