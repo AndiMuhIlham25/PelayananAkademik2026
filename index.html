@@ -16,7 +16,7 @@
       GANTI URL INI DENGAN URL WEB APP GOOGLE APPS SCRIPT
       File backend ada di Code.gs
     */
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz7l39XMBAwWgzVAt5ovL3elAcDztUpH3Y8mwC_h2ownRPcjp1rIaE8Z3sae4yWf7u1/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_FjEDvBHaC1lYkasON90xWT_uC1eMuf8JINOI4kWZPaWxjPFSmGU82PUojRNEqTbK/exec";
 
     tailwind.config = {
       theme: {
@@ -487,7 +487,7 @@
         <p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Dashboard Mini</p>
         <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Preview aduan terbaru.</h2>
         <p class="text-slate-400 leading-8 mt-5">
-          Data permanennya masuk ke Google Sheets. Tabel di bawah hanya preview lokal setelah submit.
+          Data di bawah dibaca langsung dari Google Sheets dan otomatis diperbarui berkala. Jika status di Spreadsheet diubah, status di web ikut berubah.
         </p>
       </div>
 
@@ -513,7 +513,7 @@
       <div class="reveal glass-strong rounded-[2rem] p-5 sm:p-7 mt-6 shadow-card">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
           <h3 class="text-2xl font-black">Daftar Aduan Terbaru</h3>
-          <span class="text-xs font-black text-cyan-200 bg-cyanx/10 border border-cyanx/20 px-3 py-2 rounded-full">LOCAL PREVIEW</span>
+          <span class="text-xs font-black text-cyan-200 bg-cyanx/10 border border-cyanx/20 px-3 py-2 rounded-full">LIVE SHEETS PREVIEW</span>
         </div>
 
         <div class="overflow-x-auto">
@@ -643,6 +643,49 @@
     let dosenCount = 0;
     let totalCount = 0;
     let serviceIsOpen = false;
+    const LOCAL_STORAGE_KEY = "ft_untad_pengaduan_preview_v1";
+    const SHEET_REFRESH_INTERVAL = 15000;
+    let hasLoadedSheetOnce = false;
+    let isSyncingSheet = false;
+
+    function getStoredTickets() {
+      try {
+        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || "[]");
+      } catch (error) {
+        console.error(error);
+        return [];
+      }
+    }
+
+    function saveStoredTickets(rows = []) {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(rows.slice(0, 50)));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function buildStatsFromRows(rows = []) {
+      const today = new Date().toLocaleDateString("id-ID", { timeZone: "Asia/Makassar" });
+      return rows.reduce((stats, row) => {
+        const rowDate = row.tanggalInput || row.tanggal || row.createdAt || "";
+        const rowDateText = rowDate ? new Date(rowDate).toLocaleDateString("id-ID", { timeZone: "Asia/Makassar" }) : today;
+
+        stats.total += 1;
+        if (rowDateText === today) stats.today += 1;
+        if ((row.statusAduan || "Menunggu") === "Menunggu") stats.wait += 1;
+        if (row.status === "Dosen") stats.dosen += 1;
+        if (row.status === "Mahasiswa") stats.mahasiswa += 1;
+        if (row.prioritas === "Urgent") stats.urgent += 1;
+        return stats;
+      }, { total: 0, today: 0, wait: 0, dosen: 0, mahasiswa: 0, urgent: 0 });
+    }
+
+    function renderStoredTickets() {
+      const rows = getStoredTickets();
+      setStats(buildStatsFromRows(rows));
+      renderRows(rows);
+    }
 
     function showToast(message, type = "success") {
       toast.textContent = message;
@@ -733,6 +776,14 @@
         `;
         heroTicketList.prepend(heroItem);
       }
+
+      const storedRows = getStoredTickets();
+      saveStoredTickets([{
+        ...data,
+        kodeAduan,
+        statusAduan: "Menunggu",
+        createdAt: new Date().toISOString()
+      }, ...storedRows]);
     }
 
     
@@ -826,7 +877,7 @@
 
       table.innerHTML = latest.map(row => `
         <tr class="border-b border-white/10">
-          <td class="py-4 px-3 font-black">${row.identitas || "-"}</td>
+          <td class="py-4 px-3 font-black">${row.kodeAduan || row.identitas || "-"}</td>
           <td class="py-4 px-3">${row.status || "-"}</td>
           <td class="py-4 px-3">${row.kategori || "-"}</td>
           <td class="py-4 px-3">${row.judul || "-"}</td>
@@ -840,7 +891,7 @@
           <div class="rounded-3xl p-4 bg-black/20 border border-white/10 flex items-center justify-between gap-4">
             <div>
               <h4 class="font-black">${row.judul || "-"}</h4>
-              <p class="text-xs text-slate-400 mt-1">${row.status || "-"} • ${row.identitas || "-"}</p>
+              <p class="text-xs text-slate-400 mt-1">${row.status || "-"} • ${row.kodeAduan || row.identitas || "-"}</p>
             </div>
             <span class="text-xs font-black px-3 py-1 rounded-full ${statusBadge(row.statusAduan)}">${row.statusAduan || "Menunggu"}</span>
           </div>
@@ -848,31 +899,46 @@
       }
     }
 
-    async function loadSpreadsheetData() {
+    async function loadSpreadsheetData({ silent = false } = {}) {
+      if (isSyncingSheet) return;
+
       if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("PASTE_URL_WEB_APP")) {
-        setStats({ total: 0, today: 0, wait: 0, dosen: 0, mahasiswa: 0, urgent: 0 });
-        renderRows([]);
+        renderStoredTickets();
+        if (!silent) showToast("URL Google Apps Script belum dipasang. Data yang tampil masih dari browser.", "error");
         return;
       }
 
+      isSyncingSheet = true;
+
       try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=list`, { method: "GET" });
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=list&t=${Date.now()}`, {
+          method: "GET",
+          cache: "no-store"
+        });
         const result = await response.json();
 
         if (!result.success) throw new Error(result.message || "Gagal memuat data.");
 
-        setStats(result.stats || {});
-        renderRows(result.rows || []);
+        const rows = Array.isArray(result.rows) ? result.rows : [];
+        setStats(result.stats || buildStatsFromRows(rows));
+        renderRows(rows);
+        saveStoredTickets(rows);
+        hasLoadedSheetOnce = true;
       } catch (error) {
         console.error(error);
-        setStats({ total: 0, today: 0, wait: 0, dosen: 0, mahasiswa: 0, urgent: 0 });
-        renderRows([]);
+        renderStoredTickets();
+        if (!silent && !hasLoadedSheetOnce) {
+          showToast("Data Google Sheets belum terbaca. Menampilkan data sementara dari browser.", "error");
+        }
+      } finally {
+        isSyncingSheet = false;
       }
     }
 
     updateServiceTime();
     setInterval(updateServiceTime, 30000);
-    loadSpreadsheetData();
+    loadSpreadsheetData({ silent: false });
+    setInterval(() => loadSpreadsheetData({ silent: true }), SHEET_REFRESH_INTERVAL);
 
 
     form.addEventListener("submit", async function (event) {
@@ -920,6 +986,7 @@
         }
 
         addLocalRow(data, result.kodeAduan);
+        setTimeout(() => loadSpreadsheetData({ silent: true }), 1200);
         form.reset();
         identityLabel.textContent = "Stambuk / NIM / NIDN / NIP";
         identityInput.placeholder = "Contoh mahasiswa: F5522530008 / dosen: NIDN atau NIP";

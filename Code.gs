@@ -1,76 +1,111 @@
 /*
-  GOOGLE APPS SCRIPT - BACKEND PENGADUAN FT UNTAD
+  BACKEND GOOGLE APPS SCRIPT
+  Pengaduan Pelayanan Sistem Akademik FT UNTAD
 
-  FITUR:
-  - Simpan pengaduan ke Google Sheets.
-  - Mendukung pelapor Mahasiswa, Dosen, Operator Prodi, dan Tenaga Kependidikan.
-  - Kode aduan menggunakan identitas pelapor:
-    Mahasiswa: Stambuk/NIM
-    Dosen: NIDN/NIP
-    Operator/Tendik: NIP/ID Pegawai
-  - Kirim notifikasi email otomatis ke akademikfatek2025@gmail.com.
-  - Jika spreadsheet dibuat dari akun akademikfatek2025@gmail.com, file otomatis ada di Drive email itu.
-  - Jika dibuat dari akun lain, share spreadsheet ke akademikfatek2025@gmail.com sebagai Editor.
-
-  CARA DEPLOY:
-  1. Login Google dengan email yang ingin jadi pemilik Spreadsheet.
-     Disarankan: akademikfatek2025@gmail.com
-  2. Buat Google Spreadsheet baru.
-  3. Rename tab/sheet menjadi: Aduan
-  4. Buka Extensions > Apps Script.
-  5. Hapus kode default lalu paste kode ini.
-  6. Klik Save.
-  7. Deploy > New deployment.
-  8. Type: Web app.
-  9. Execute as: Me.
-  10. Who has access: Anyone.
-  11. Klik Deploy dan izinkan akses.
-  12. Copy Web app URL ke GOOGLE_SCRIPT_URL di index.html.
+  Cara pakai:
+  1. Buka https://script.google.com/
+  2. Buat project baru
+  3. Hapus isi Code.gs
+  4. Paste semua kode ini
+  5. Isi SPREADSHEET_ID dan ADMIN_EMAIL
+  6. Jalankan setupSheet() sekali
+  7. Deploy > New deployment > Web app
+     - Execute as: Me
+     - Who has access: Anyone
+  8. Copy URL Web App, lalu tempel ke GOOGLE_SCRIPT_URL di index.html
 */
 
-const SHEET_NAME = "Aduan";
-const NOTIFICATION_EMAIL = "akademikfatek2025@gmail.com";
+const SPREADSHEET_ID = "ISI_ID_SPREADSHEET_DI_SINI";
+const SHEET_NAME = "Pengaduan";
+const ADMIN_EMAIL = "akademikfatek2025@gmail.com";
+const TIMEZONE = "Asia/Makassar";
+
+const HEADERS = [
+  "Timestamp",
+  "Kode Aduan",
+  "Nama",
+  "Status",
+  "Identitas",
+  "Kontak",
+  "Prodi",
+  "Kategori",
+  "Prioritas",
+  "Judul",
+  "Detail",
+  "Status Aduan",
+  "Catatan Operator",
+  "User Agent"
+];
+
+function setupSheet() {
+  const sheet = getSheet_();
+
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(HEADERS);
+  } else {
+    const currentHeaders = sheet
+      .getRange(1, 1, 1, Math.max(sheet.getLastColumn(), HEADERS.length))
+      .getValues()[0];
+
+    HEADERS.forEach((header, index) => {
+      if (!currentHeaders[index]) {
+        sheet.getRange(1, index + 1).setValue(header);
+      }
+    });
+  }
+
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, HEADERS.length);
+}
+
+function doGet(e) {
+  try {
+    const action = e && e.parameter && e.parameter.action;
+
+    if (action === "list") {
+      return jsonResponse_({
+        success: true,
+        rows: getRows_(),
+        stats: getStats_()
+      });
+    }
+
+    return jsonResponse_({
+      success: true,
+      message: "Backend Apps Script aktif. Gunakan ?action=list untuk membaca data."
+    });
+  } catch (error) {
+    return jsonResponse_({
+      success: false,
+      message: error.message
+    });
+  }
+}
 
 function doPost(e) {
-  let lock;
-
   try {
-    lock = LockService.getScriptLock();
-    lock.waitLock(10000);
-
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName(SHEET_NAME);
-
-    if (!sheet) {
-      sheet = ss.insertSheet(SHEET_NAME);
+    if (!e || !e.postData || !e.postData.contents) {
+      throw new Error("Data kosong. Tidak ada payload yang diterima.");
     }
 
-    setupHeaderIfNeeded(sheet);
+    const data = JSON.parse(e.postData.contents);
+    validateData_(data);
 
-    const data = JSON.parse(e.postData.contents || "{}");
-    const now = new Date();
+    const sheet = getSheet_();
 
-    const identitas = String(data.identitas || "").trim();
-    const statusPelapor = String(data.status || "").trim();
-
-    if (!identitas) {
-      throw new Error("Identitas pelapor wajib diisi.");
+    if (sheet.getLastRow() === 0) {
+      setupSheet();
     }
 
-    if (!statusPelapor) {
-      throw new Error("Status pelapor wajib dipilih.");
-    }
+    const kodeAduan = generateKodeAduan_();
+    const timestamp = new Date();
 
-    const kodeAduan = identitas;
-    const labelIdentitas = getIdentityLabel(statusPelapor);
-
-    const row = [
-      now,
+    sheet.appendRow([
+      timestamp,
       kodeAduan,
       data.nama || "",
-      statusPelapor,
-      labelIdentitas,
-      identitas,
+      data.status || "",
+      data.identitas || "",
       data.kontak || "",
       data.prodi || "",
       data.kategori || "",
@@ -80,257 +115,199 @@ function doPost(e) {
       "Menunggu",
       "",
       data.userAgent || ""
-    ];
+    ]);
 
-    sheet.appendRow(row);
-    sheet.autoResizeColumns(1, 15);
+    sendAdminNotification_(data, kodeAduan, timestamp);
+    sendUserNotification_(data, kodeAduan);
 
-    const lastRow = sheet.getLastRow();
-    applyRowStyle(sheet, lastRow, data.prioritas);
-
-    const spreadsheetUrl = ss.getUrl();
-
-    sendNotificationEmail({
-      waktu: now,
-      kodeAduan,
-      labelIdentitas,
-      identitas,
-      spreadsheetUrl,
-      ...data
-    });
-
-    return jsonResponse({
+    return jsonResponse_({
       success: true,
-      message: "Aduan berhasil disimpan dan notifikasi email terkirim.",
+      message: "Aduan berhasil tersimpan.",
       kodeAduan: kodeAduan
     });
   } catch (error) {
-    return jsonResponse({
+    return jsonResponse_({
       success: false,
-      message: error.toString()
-    });
-  } finally {
-    if (lock) {
-      try {
-        lock.releaseLock();
-      } catch (err) {}
-    }
-  }
-}
-
-function doGet(e) {
-  try {
-    const action = e && e.parameter ? e.parameter.action : "";
-
-    if (action === "list") {
-      return jsonResponse(getComplaintData());
-    }
-
-    return jsonResponse({
-      success: true,
-      message: "API Pengaduan FT UNTAD aktif.",
-      notificationEmail: NOTIFICATION_EMAIL
-    });
-  } catch (error) {
-    return jsonResponse({
-      success: false,
-      message: error.toString()
+      message: error.message
     });
   }
 }
 
-function setupHeaderIfNeeded(sheet) {
-  const headers = [
-    "Timestamp",
-    "Kode Aduan / Identitas",
-    "Nama Lengkap",
-    "Status Pelapor",
-    "Jenis Identitas",
-    "Nomor Identitas",
-    "Kontak WA / Email",
-    "Program Studi / Unit",
-    "Kategori Aduan",
-    "Prioritas",
-    "Judul Aduan",
-    "Detail Permasalahan",
-    "Status Aduan",
-    "Catatan Operator",
-    "User Agent"
-  ];
-
-  const lastRow = sheet.getLastRow();
-
-  if (lastRow === 0) {
-    sheet.appendRow(headers);
-    sheet.setFrozenRows(1);
-    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
-    sheet.getRange(1, 1, 1, headers.length).setBackground("#0f172a");
-    sheet.getRange(1, 1, 1, headers.length).setFontColor("#ffffff");
-    sheet.autoResizeColumns(1, headers.length);
-    return;
+function getSheet_() {
+  if (!SPREADSHEET_ID || SPREADSHEET_ID === "https://docs.google.com/spreadsheets/d/1gDmxitArRVBWxrdYP62iAtVWIr-CWmyY4JnkwEf3wLI/edit?usp=sharing") {
+    throw new Error("SPREADSHEET_ID belum diisi di Code.gs.");
   }
 
-  const firstCell = sheet.getRange(1, 1).getValue();
-
-  if (firstCell !== "Timestamp") {
-    sheet.insertRowBefore(1);
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.setFrozenRows(1);
-    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold");
-    sheet.getRange(1, 1, 1, headers.length).setBackground("#0f172a");
-    sheet.getRange(1, 1, 1, headers.length).setFontColor("#ffffff");
-    sheet.autoResizeColumns(1, headers.length);
-  }
-}
-
-function getIdentityLabel(statusPelapor) {
-  if (statusPelapor === "Mahasiswa") return "Stambuk / NIM";
-  if (statusPelapor === "Dosen") return "NIDN / NIP Dosen";
-  if (statusPelapor === "Operator Prodi") return "NIP / ID Operator";
-  if (statusPelapor === "Tenaga Kependidikan") return "NIP / ID Pegawai";
-  return "Identitas Pelapor";
-}
-
-function applyRowStyle(sheet, rowNumber, prioritas) {
-  const range = sheet.getRange(rowNumber, 1, 1, 15);
-
-  if (prioritas === "Urgent") {
-    range.setBackground("#fee2e2");
-  } else if (prioritas === "Tinggi") {
-    range.setBackground("#ffedd5");
-  } else if (prioritas === "Sedang") {
-    range.setBackground("#fef9c3");
-  } else {
-    range.setBackground("#f8fafc");
-  }
-}
-
-function sendNotificationEmail(data) {
-  const subject = `[Pengaduan Akademik FT UNTAD] ${data.status} - ${data.kategori}`;
-
-  const body = `
-Ada pengaduan baru masuk pada Sistem Pengaduan Pelayanan Akademik Fakultas Teknik UNTAD.
-
-DETAIL PENGADUAN
---------------------------------
-Waktu              : ${formatDate(data.waktu)}
-Kode/Identitas     : ${data.kodeAduan}
-Nama Pelapor       : ${data.nama || "-"}
-Status Pelapor     : ${data.status || "-"}
-Jenis Identitas    : ${data.labelIdentitas || "-"}
-Nomor Identitas    : ${data.identitas || "-"}
-Kontak             : ${data.kontak || "-"}
-Prodi / Unit       : ${data.prodi || "-"}
-Kategori           : ${data.kategori || "-"}
-Prioritas          : ${data.prioritas || "-"}
-Judul Aduan        : ${data.judul || "-"}
-
-DETAIL MASALAH
---------------------------------
-${data.detail || "-"}
-
-STATUS AWAL
---------------------------------
-Menunggu
-
-Buka Spreadsheet:
-${data.spreadsheetUrl}
-
-Catatan:
-Silakan tinjau data pengaduan pada spreadsheet, lalu isi kolom "Status Aduan" dan "Catatan Operator".
-`;
-
-  MailApp.sendEmail({
-    to: NOTIFICATION_EMAIL,
-    subject: subject,
-    body: body,
-    name: "Sistem Pengaduan FT UNTAD"
-  });
-}
-
-function formatDate(date) {
-  return Utilities.formatDate(date, Session.getScriptTimeZone(), "dd/MM/yyyy HH:mm:ss");
-}
-
-function jsonResponse(payload) {
-  return ContentService
-    .createTextOutput(JSON.stringify(payload))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-
-function getComplaintData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_NAME);
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = spreadsheet.getSheetByName(SHEET_NAME);
 
   if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-    setupHeaderIfNeeded(sheet);
+    sheet = spreadsheet.insertSheet(SHEET_NAME);
   }
 
-  setupHeaderIfNeeded(sheet);
+  return sheet;
+}
 
-  const lastRow = sheet.getLastRow();
-  const lastColumn = sheet.getLastColumn();
+function getRows_() {
+  const sheet = getSheet_();
 
-  if (lastRow <= 1) {
-    return {
-      success: true,
-      stats: {
-        total: 0,
-        today: 0,
-        wait: 0,
-        dosen: 0,
-        mahasiswa: 0,
-        urgent: 0
-      },
-      rows: []
-    };
+  if (sheet.getLastRow() <= 1) {
+    return [];
   }
 
-  const values = sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
-  const todayKey = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyyMMdd");
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0].map(header => String(header).trim());
+  const rows = values.slice(1);
 
-  const rows = values
-    .filter(row => row[0])
+  return rows
+    .filter(row => row.some(cell => cell !== "" && cell !== null))
+    .reverse()
     .map(row => {
-      return {
-        timestamp: row[0] ? row[0].toString() : "",
-        kode: row[1] || "",
-        nama: row[2] || "",
-        status: row[3] || "",
-        jenisIdentitas: row[4] || "",
-        identitas: row[5] || row[1] || "",
-        kontak: row[6] || "",
-        prodi: row[7] || "",
-        kategori: row[8] || "",
-        prioritas: row[9] || "",
-        judul: row[10] || "",
-        detail: row[11] || "",
-        statusAduan: row[12] || "Menunggu",
-        catatan: row[13] || ""
-      };
-    })
-    .reverse();
+      const item = rowToObject_(headers, row);
 
-  const stats = {
+      return {
+        timestamp: formatDate_(item["Timestamp"]),
+        kodeAduan: item["Kode Aduan"] || "",
+        nama: item["Nama"] || "",
+        status: item["Status"] || "",
+        identitas: item["Identitas"] || "",
+        kontak: item["Kontak"] || "",
+        prodi: item["Prodi"] || "",
+        kategori: item["Kategori"] || "",
+        prioritas: item["Prioritas"] || "",
+        judul: item["Judul"] || "",
+        detail: item["Detail"] || "",
+        statusAduan: item["Status Aduan"] || "Menunggu",
+        catatanOperator: item["Catatan Operator"] || ""
+      };
+    });
+}
+
+function getStats_() {
+  const rows = getRows_();
+  const todayText = Utilities.formatDate(new Date(), TIMEZONE, "yyyy-MM-dd");
+
+  return {
     total: rows.length,
     today: rows.filter(row => {
       if (!row.timestamp) return false;
-      const d = new Date(row.timestamp);
-      if (isNaN(d.getTime())) return false;
-      const key = Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyyMMdd");
-      return key === todayKey;
+      return String(row.timestamp).startsWith(todayText);
     }).length,
-    wait: rows.filter(row => String(row.statusAduan || "Menunggu").toLowerCase() === "menunggu").length,
-    dosen: rows.filter(row => row.status === "Dosen").length,
-    mahasiswa: rows.filter(row => row.status === "Mahasiswa").length,
-    urgent: rows.filter(row => row.prioritas === "Urgent").length
+    wait: rows.filter(row => normalize_(row.statusAduan) === "menunggu").length,
+    dosen: rows.filter(row => normalize_(row.status) === "dosen").length,
+    mahasiswa: rows.filter(row => normalize_(row.status) === "mahasiswa").length,
+    urgent: rows.filter(row => normalize_(row.prioritas) === "urgent").length
   };
+}
 
-  return {
-    success: true,
-    stats: stats,
-    rows: rows.slice(0, 50)
-  };
+function rowToObject_(headers, row) {
+  const object = {};
+
+  headers.forEach((header, index) => {
+    object[header] = row[index];
+  });
+
+  return object;
+}
+
+function validateData_(data) {
+  const requiredFields = [
+    "nama",
+    "status",
+    "identitas",
+    "kontak",
+    "prodi",
+    "kategori",
+    "prioritas",
+    "judul",
+    "detail"
+  ];
+
+  requiredFields.forEach(field => {
+    if (!data[field] || String(data[field]).trim() === "") {
+      throw new Error(`Field ${field} wajib diisi.`);
+    }
+  });
+}
+
+function generateKodeAduan_() {
+  const sheet = getSheet_();
+  const datePart = Utilities.formatDate(new Date(), TIMEZONE, "yyyyMMdd");
+  const count = Math.max(sheet.getLastRow(), 1);
+  const numberPart = String(count).padStart(4, "0");
+
+  return `FT-${datePart}-${numberPart}`;
+}
+
+function formatDate_(value) {
+  if (!value) return "";
+
+  if (Object.prototype.toString.call(value) === "[object Date]") {
+    return Utilities.formatDate(value, TIMEZONE, "yyyy-MM-dd HH:mm:ss");
+  }
+
+  return String(value);
+}
+
+function normalize_(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function jsonResponse_(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function sendAdminNotification_(data, kodeAduan, timestamp) {
+  if (!ADMIN_EMAIL) return;
+
+  const subject = `[Pengaduan Akademik FT] ${kodeAduan} - ${data.prioritas || "Prioritas"}`;
+
+  const body = `
+Ada pengaduan akademik baru.
+
+Kode Aduan: ${kodeAduan}
+Waktu: ${Utilities.formatDate(timestamp, TIMEZONE, "yyyy-MM-dd HH:mm:ss")} WITA
+
+Nama: ${data.nama || "-"}
+Status Pelapor: ${data.status || "-"}
+Identitas: ${data.identitas || "-"}
+Kontak: ${data.kontak || "-"}
+Prodi/Unit: ${data.prodi || "-"}
+Kategori: ${data.kategori || "-"}
+Prioritas: ${data.prioritas || "-"}
+Judul: ${data.judul || "-"}
+
+Detail:
+${data.detail || "-"}
+
+Status awal: Menunggu
+`;
+
+  MailApp.sendEmail(ADMIN_EMAIL, subject, body);
+}
+
+function sendUserNotification_(data, kodeAduan) {
+  const kontak = String(data.kontak || "").trim();
+
+  if (!kontak.includes("@")) return;
+
+  const subject = `[FT UNTAD] Aduan Anda diterima - ${kodeAduan}`;
+
+  const body = `
+Yth. ${data.nama || "Pelapor"},
+
+Aduan Anda sudah diterima oleh sistem pelayanan akademik Fakultas Teknik Universitas Tadulako.
+
+Kode Aduan: ${kodeAduan}
+Judul Aduan: ${data.judul || "-"}
+Status Awal: Menunggu
+
+Mohon simpan kode aduan ini untuk pengecekan atau tindak lanjut.
+
+Terima kasih.
+`;
+
+  MailApp.sendEmail(kontak, subject, body);
 }
