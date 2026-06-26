@@ -228,24 +228,12 @@
 
         <h2 class="text-5xl sm:text-6xl lg:text-8xl font-black tracking-[-0.075em] leading-[.9]">
           Selamat datang.
-          <span class="block text-transparent bg-clip-text bg-gradient-to-r from-cyanx via-bluex to-purplex">
-            Silakan isi permasalahan Anda.
-          </span>
         </h2>
 
         <p class="mt-7 text-slate-300 text-lg leading-8 max-w-2xl">
           Website pengaduan pelayanan sistem akademik Fakultas Teknik Universitas Tadulako.
           Silakan isi data dan jelaskan kendala Anda terkait SIGA-8, nilai, jadwal, KRS, akses akun, atau layanan akademik lainnya.
         </p>
-
-        <div class="mt-9 flex flex-wrap gap-4">
-          <a href="#pengaduan" class="px-6 py-4 rounded-full bg-gradient-to-r from-bluex to-cyanx font-black shadow-glowBlue hover:scale-[1.02] transition">
-            Kirim Pengaduan
-          </a>
-          <a href="#dashboard" class="px-6 py-4 rounded-full glass font-black hover:bg-white/15 transition">
-            Pantau Dashboard
-          </a>
-        </div>
 
         <div class="mt-10 glass rounded-[2rem] p-5 max-w-2xl game-card">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -341,7 +329,7 @@
     <section id="alur" class="w-[min(1180px,calc(100%-24px))] mx-auto py-24">
       <div class="reveal max-w-3xl">
         <p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Quest Flow</p>
-        <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Aduan masuk, spreadsheet update, email bunyi.</h2>
+        <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Aduan masuk, Diproses, Selesai.</h2>
       </div>
 
       <div class="mt-10 grid md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -353,7 +341,7 @@
         <div class="reveal glass rounded-[2rem] p-7 game-card">
           <b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-bluex/10 text-blue-200 mb-6">02</b>
           <h3 class="font-black text-xl">Masuk Sheets</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">Data otomatis tersimpan di spreadsheet online.</p>
+          <p class="text-slate-400 text-sm leading-7 mt-3">Data otomatis tersimpan di database Form Aduan.</p>
         </div>
         <div class="reveal glass rounded-[2rem] p-7 game-card">
           <b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-purplex/10 text-purple-200 mb-6">03</b>
@@ -363,7 +351,7 @@
         <div class="reveal glass rounded-[2rem] p-7 game-card">
           <b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-greenx/10 text-green-200 mb-6">04</b>
           <h3 class="font-black text-xl">Ditinjau</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">Status dan catatan operator bisa diedit langsung di spreadsheet.</p>
+          <p class="text-slate-400 text-sm leading-7 mt-3">Status dan catatan akan segera di proses oleh admin.</p>
         </div>
       </div>
     </section>
@@ -373,14 +361,14 @@
         <p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Form Pengaduan</p>
         <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Dosen juga bisa ajukan pengaduan.</h2>
         <p class="text-slate-400 leading-8 mt-5">
-          Field identitas akan menyesuaikan status pelapor. Mahasiswa pakai Stambuk/NIM, dosen pakai NIDN/NIP,
+          Silahkan pilih jenis kategorinya. Mahasiswa pakai Stambuk/NIM, dosen pakai NIDN/NIP,
           operator/tendik pakai NIP/ID pegawai.
         </p>
 
         <div class="glass rounded-[2rem] p-6 mt-7 border-orange-300/20 bg-orange-400/10">
           <h3 class="font-black text-orange-100">Catatan Penting</h3>
           <p class="text-sm text-slate-300 leading-7 mt-2">
-            Harus menggunakan <b>Email Google/Gmail</b> atau kontak WhatsApp aktif agar balasan dan tindak lanjut pengaduan dapat dikirim kembali ke email Anda atau ke WA Anda.
+            Harus menggunakan <b>Email Google/Gmail</b> atau kontak WhatsApp aktif agar balasan dan tindak lanjut pengaduan dapat di konfirmasi ke anda secara online.
           </p>
         </div>
       </div>
@@ -487,7 +475,7 @@
         <p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Dashboard Mini</p>
         <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Preview aduan terbaru.</h2>
         <p class="text-slate-400 leading-8 mt-5">
-          Data di bawah dibaca langsung dari Google Sheets dan otomatis diperbarui berkala. Jika status di Spreadsheet diubah, status di web ikut berubah.
+          Data di bawah ini adalah data yang masuk ke database dan otomatis diperbarui berkala.
         </p>
       </div>
 
@@ -501,8 +489,8 @@
           <h3 id="countWait" class="text-5xl font-black mt-2">0</h3>
         </div>
         <div class="reveal glass rounded-[2rem] p-7 game-card">
-          <p class="text-sm text-slate-400">Aduan Dosen</p>
-          <h3 id="countDosen" class="text-5xl font-black mt-2">0</h3>
+          <p class="text-sm text-slate-400">Aduan Mahasiswa</p>
+          <h3 id="heroMahasiswa" class="text-5xl font-black mt-2">0</h3>
         </div>
         <div class="reveal glass rounded-[2rem] p-7 game-card">
           <p class="text-sm text-slate-400">Status Layanan</p>
