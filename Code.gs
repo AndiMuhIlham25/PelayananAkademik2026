@@ -1,21 +1,38 @@
 /*
+  =========================================================
   BACKEND GOOGLE APPS SCRIPT
-  Pengaduan Pelayanan Sistem Akademik FT UNTAD
+  Pengaduan Pelayanan Sistem Akademik FT UNTAD - V3 Live Sheets
+  =========================================================
 
-  Cara pakai:
-  1. Buka https://script.google.com/
-  2. Buat project baru
-  3. Hapus isi Code.gs
-  4. Paste semua kode ini
-  5. Isi SPREADSHEET_ID dan ADMIN_EMAIL
-  6. Jalankan setupSheet() sekali
-  7. Deploy > New deployment > Web app
-     - Execute as: Me
-     - Who has access: Anyone
-  8. Copy URL Web App, lalu tempel ke GOOGLE_SCRIPT_URL di index.html
+  Spreadsheet sudah dipasang:
+  https://docs.google.com/spreadsheets/d/18V6wvuv5tG8HyC7HwHONAXyYzEyLl_3QVsCs7HIUXJI/edit
+
+  FITUR:
+  - Menerima submit pengaduan dari index.html
+  - Menyimpan data ke Google Spreadsheet
+  - Membuat header Spreadsheet otomatis lewat setupSheet()
+  - Status awal otomatis: Menunggu
+  - Endpoint GET ?action=list untuk dashboard live
+  - Kalau kolom "Status Aduan" di Spreadsheet diganti jadi Selesai,
+    website otomatis ikut berubah saat auto-refresh
+  - Statistik: total, hari ini, menunggu, selesai, dosen, mahasiswa, urgent
+  - Email notifikasi ke admin
+  - Email balasan ke pelapor jika kontak berisi email
+
+  CARA PASANG:
+  1. Buka Google Apps Script.
+  2. Hapus isi Code.gs lama.
+  3. Paste semua kode ini.
+  4. Save.
+  5. Jalankan fungsi setupSheet() sekali.
+  6. Deploy > Manage deployments > Edit/pensil.
+  7. Pilih Version: New version.
+  8. Execute as: Me.
+  9. Who has access: Anyone.
+  10. Deploy.
 */
 
-const SPREADSHEET_ID = "ISI_ID_SPREADSHEET_DI_SINI";
+const SPREADSHEET_ID = "18V6wvuv5tG8HyC7HwHONAXyYzEyLl_3QVsCs7HIUXJI";
 const SHEET_NAME = "Pengaduan";
 const ADMIN_EMAIL = "akademikfatek2025@gmail.com";
 const TIMEZONE = "Asia/Makassar";
@@ -43,19 +60,51 @@ function setupSheet() {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(HEADERS);
   } else {
-    const currentHeaders = sheet
-      .getRange(1, 1, 1, Math.max(sheet.getLastColumn(), HEADERS.length))
-      .getValues()[0];
+    const lastColumn = Math.max(sheet.getLastColumn(), HEADERS.length);
+    const currentHeaders = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
 
     HEADERS.forEach((header, index) => {
-      if (!currentHeaders[index]) {
+      if (!currentHeaders[index] || String(currentHeaders[index]).trim() !== header) {
         sheet.getRange(1, index + 1).setValue(header);
       }
     });
   }
 
   sheet.setFrozenRows(1);
+
+  sheet.getRange(1, 1, 1, HEADERS.length)
+    .setFontWeight("bold")
+    .setBackground("#0f172a")
+    .setFontColor("#ffffff");
+
   sheet.autoResizeColumns(1, HEADERS.length);
+
+  const statusColumn = HEADERS.indexOf("Status Aduan") + 1;
+  const priorityColumn = HEADERS.indexOf("Prioritas") + 1;
+
+  if (statusColumn > 0) {
+    const statusRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(["Menunggu", "Diproses", "Selesai", "Ditolak"], true)
+      .setAllowInvalid(true)
+      .build();
+
+    sheet
+      .getRange(2, statusColumn, Math.max(sheet.getMaxRows() - 1, 1), 1)
+      .setDataValidation(statusRule);
+  }
+
+  if (priorityColumn > 0) {
+    const priorityRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(["Rendah", "Sedang", "Tinggi", "Urgent"], true)
+      .setAllowInvalid(true)
+      .build();
+
+    sheet
+      .getRange(2, priorityColumn, Math.max(sheet.getMaxRows() - 1, 1), 1)
+      .setDataValidation(priorityRule);
+  }
+
+  return "Setup selesai. Header dan validasi dropdown sudah dibuat.";
 }
 
 function doGet(e) {
@@ -63,16 +112,20 @@ function doGet(e) {
     const action = e && e.parameter && e.parameter.action;
 
     if (action === "list") {
+      const rows = getRows_();
+
       return jsonResponse_({
         success: true,
-        rows: getRows_(),
-        stats: getStats_()
+        rows: rows,
+        stats: getStatsFromRows_(rows),
+        serverTime: Utilities.formatDate(new Date(), TIMEZONE, "yyyy-MM-dd HH:mm:ss")
       });
     }
 
     return jsonResponse_({
       success: true,
-      message: "Backend Apps Script aktif. Gunakan ?action=list untuk membaca data."
+      message: "Backend Apps Script aktif. Gunakan ?action=list untuk membaca data.",
+      serverTime: Utilities.formatDate(new Date(), TIMEZONE, "yyyy-MM-dd HH:mm:ss")
     });
   } catch (error) {
     return jsonResponse_({
@@ -103,18 +156,18 @@ function doPost(e) {
     sheet.appendRow([
       timestamp,
       kodeAduan,
-      data.nama || "",
-      data.status || "",
-      data.identitas || "",
-      data.kontak || "",
-      data.prodi || "",
-      data.kategori || "",
-      data.prioritas || "",
-      data.judul || "",
-      data.detail || "",
+      clean_(data.nama),
+      clean_(data.status),
+      clean_(data.identitas),
+      clean_(data.kontak),
+      clean_(data.prodi),
+      clean_(data.kategori),
+      clean_(data.prioritas),
+      clean_(data.judul),
+      clean_(data.detail),
       "Menunggu",
       "",
-      data.userAgent || ""
+      clean_(data.userAgent)
     ]);
 
     sendAdminNotification_(data, kodeAduan, timestamp);
@@ -134,10 +187,6 @@ function doPost(e) {
 }
 
 function getSheet_() {
-  if (!SPREADSHEET_ID || SPREADSHEET_ID === "https://docs.google.com/spreadsheets/d/1gDmxitArRVBWxrdYP62iAtVWIr-CWmyY4JnkwEf3wLI/edit?usp=sharing") {
-    throw new Error("SPREADSHEET_ID belum diisi di Code.gs.");
-  }
-
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = spreadsheet.getSheetByName(SHEET_NAME);
 
@@ -167,33 +216,30 @@ function getRows_() {
 
       return {
         timestamp: formatDate_(item["Timestamp"]),
-        kodeAduan: item["Kode Aduan"] || "",
-        nama: item["Nama"] || "",
-        status: item["Status"] || "",
-        identitas: item["Identitas"] || "",
-        kontak: item["Kontak"] || "",
-        prodi: item["Prodi"] || "",
-        kategori: item["Kategori"] || "",
-        prioritas: item["Prioritas"] || "",
-        judul: item["Judul"] || "",
-        detail: item["Detail"] || "",
-        statusAduan: item["Status Aduan"] || "Menunggu",
-        catatanOperator: item["Catatan Operator"] || ""
+        kodeAduan: value_(item["Kode Aduan"]),
+        nama: value_(item["Nama"]),
+        status: value_(item["Status"]),
+        identitas: value_(item["Identitas"]),
+        kontak: value_(item["Kontak"]),
+        prodi: value_(item["Prodi"]),
+        kategori: value_(item["Kategori"]),
+        prioritas: value_(item["Prioritas"]),
+        judul: value_(item["Judul"]),
+        detail: value_(item["Detail"]),
+        statusAduan: value_(item["Status Aduan"]) || "Menunggu",
+        catatanOperator: value_(item["Catatan Operator"])
       };
     });
 }
 
-function getStats_() {
-  const rows = getRows_();
+function getStatsFromRows_(rows) {
   const todayText = Utilities.formatDate(new Date(), TIMEZONE, "yyyy-MM-dd");
 
   return {
     total: rows.length,
-    today: rows.filter(row => {
-      if (!row.timestamp) return false;
-      return String(row.timestamp).startsWith(todayText);
-    }).length,
+    today: rows.filter(row => String(row.timestamp || "").startsWith(todayText)).length,
     wait: rows.filter(row => normalize_(row.statusAduan) === "menunggu").length,
+    done: rows.filter(row => normalize_(row.statusAduan) === "selesai").length,
     dosen: rows.filter(row => normalize_(row.status) === "dosen").length,
     mahasiswa: rows.filter(row => normalize_(row.status) === "mahasiswa").length,
     urgent: rows.filter(row => normalize_(row.prioritas) === "urgent").length
@@ -233,8 +279,8 @@ function validateData_(data) {
 function generateKodeAduan_() {
   const sheet = getSheet_();
   const datePart = Utilities.formatDate(new Date(), TIMEZONE, "yyyyMMdd");
-  const count = Math.max(sheet.getLastRow(), 1);
-  const numberPart = String(count).padStart(4, "0");
+  const nextNumber = Math.max(sheet.getLastRow(), 1);
+  const numberPart = String(nextNumber).padStart(4, "0");
 
   return `FT-${datePart}-${numberPart}`;
 }
@@ -251,6 +297,15 @@ function formatDate_(value) {
 
 function normalize_(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function clean_(value) {
+  return String(value || "").trim();
+}
+
+function value_(value) {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
 }
 
 function jsonResponse_(data) {
@@ -283,6 +338,14 @@ Detail:
 ${data.detail || "-"}
 
 Status awal: Menunggu
+
+Silakan buka Spreadsheet untuk mengubah status menjadi:
+- Menunggu
+- Diproses
+- Selesai
+- Ditolak
+
+Catatan operator dapat diisi pada kolom "Catatan Operator".
 `;
 
   MailApp.sendEmail(ADMIN_EMAIL, subject, body);

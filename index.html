@@ -4,62 +4,50 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pengaduan Pelayanan Sistem Akademik | FT UNTAD</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
   <script>
-    /*
-      GANTI URL INI DENGAN URL WEB APP GOOGLE APPS SCRIPT
-      File backend ada di Code.gs
-    */
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_FjEDvBHaC1lYkasON90xWT_uC1eMuf8JINOI4kWZPaWxjPFSmGU82PUojRNEqTbK/exec";
+    // GANTI dengan URL Web App Google Apps Script.
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzLIPhN8j-uFMG-c29OMQSFvy5ft-392D2qPe_WQ4TvwzSaqHHoJ2nGiWD_D1VRdV7Qw/exec";
+
+    const SERVICE_OPEN_HOUR = 8;
+    const SERVICE_CLOSE_HOUR = 16;
+    const SHEETS_REFRESH_MS = 15000;
 
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { inter: ['Inter', 'sans-serif'] },
+          fontFamily: { inter: ["Inter", "sans-serif"] },
           colors: {
-            gamebg: '#050816',
-            cyanx: '#22d3ee',
-            bluex: '#3b82f6',
-            purplex: '#8b5cf6',
-            greenx: '#22c55e',
-            orangex: '#f59e0b',
-            redx: '#ef4444'
+            gamebg: "#050816",
+            cyanx: "#22d3ee",
+            bluex: "#3b82f6",
+            purplex: "#8b5cf6",
+            greenx: "#22c55e",
+            orangex: "#f59e0b",
+            redx: "#ef4444"
           },
           boxShadow: {
-            glow: '0 0 45px rgba(34, 211, 238, .22)',
-            glowBlue: '0 0 70px rgba(59, 130, 246, .28)',
-            card: '0 28px 90px rgba(0, 0, 0, .42)'
+            glow: "0 0 45px rgba(34, 211, 238, .22)",
+            glowBlue: "0 0 70px rgba(59, 130, 246, .28)",
+            card: "0 28px 90px rgba(0, 0, 0, .42)"
           },
           keyframes: {
-            float: {
-              '0%, 100%': { transform: 'translateY(0)' },
-              '50%': { transform: 'translateY(-16px)' }
-            },
-            pulseSoft: {
-              '0%, 100%': { opacity: '.65', transform: 'scale(1)' },
-              '50%': { opacity: '1', transform: 'scale(1.06)' }
-            },
-            scan: {
-              '0%': { transform: 'translateY(-100%)' },
-              '100%': { transform: 'translateY(100%)' }
-            }
+            float: { "0%, 100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-16px)" } },
+            pulseSoft: { "0%, 100%": { opacity: ".65", transform: "scale(1)" }, "50%": { opacity: "1", transform: "scale(1.06)" } },
+            scan: { "0%": { transform: "translateY(-100%)" }, "100%": { transform: "translateY(100%)" } }
           },
           animation: {
-            float: 'float 5.2s ease-in-out infinite',
-            pulseSoft: 'pulseSoft 3s ease-in-out infinite',
-            scan: 'scan 4.5s linear infinite'
+            float: "float 5.2s ease-in-out infinite",
+            pulseSoft: "pulseSoft 3s ease-in-out infinite",
+            scan: "scan 4.5s linear infinite"
           }
         }
       }
-    }
+    };
   </script>
-
   <style>
     * { box-sizing: border-box; }
     body {
@@ -85,110 +73,26 @@
       background-size: 42px 42px;
       mask-image: linear-gradient(to bottom, black, transparent 70%);
     }
-    .glass {
-      background: rgba(255,255,255,.075);
-      border: 1px solid rgba(255,255,255,.13);
-      backdrop-filter: blur(18px);
-    }
-    .glass-strong {
-      background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
-      border: 1px solid rgba(255,255,255,.15);
-      backdrop-filter: blur(22px);
-    }
-    .game-card {
-      position: relative;
-      overflow: hidden;
-      transition: .3s ease;
-    }
-    .game-card::after {
-      content: "";
-      position: absolute;
-      inset: -2px;
-      background: linear-gradient(120deg, transparent, rgba(34,211,238,.22), transparent);
-      opacity: 0;
-      transition: .3s ease;
-      transform: translateX(-60%);
-      pointer-events: none;
-    }
-    .game-card:hover {
-      transform: translateY(-8px) scale(1.01);
-      border-color: rgba(34,211,238,.45);
-      box-shadow: 0 0 45px rgba(34,211,238,.14);
-    }
-    .game-card:hover::after {
-      opacity: 1;
-      transform: translateX(60%);
-    }
-    .reveal {
-      opacity: 0;
-      transform: translateY(32px);
-      transition: .75s cubic-bezier(.2,.8,.2,1);
-    }
-    .reveal.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .hud-link.active {
-      color: white;
-      background: rgba(34, 211, 238, .12);
-      border-color: rgba(34, 211, 238, .35);
-    }
-    .progress-line {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 4px;
-      width: 0%;
-      z-index: 80;
-      background: linear-gradient(90deg, #3b82f6, #22d3ee, #8b5cf6);
-      box-shadow: 0 0 24px rgba(34,211,238,.8);
-    }
-    .scanline::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, transparent, rgba(34,211,238,.08), transparent);
-      animation: scan 4.5s linear infinite;
-      pointer-events: none;
-    }
+    .glass { background: rgba(255,255,255,.075); border: 1px solid rgba(255,255,255,.13); backdrop-filter: blur(18px); }
+    .glass-strong { background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06)); border: 1px solid rgba(255,255,255,.15); backdrop-filter: blur(22px); }
+    .game-card { position: relative; overflow: hidden; transition: .3s ease; }
+    .game-card::after { content: ""; position: absolute; inset: -2px; background: linear-gradient(120deg, transparent, rgba(34,211,238,.22), transparent); opacity: 0; transition: .3s ease; transform: translateX(-60%); pointer-events: none; }
+    .game-card:hover { transform: translateY(-8px) scale(1.01); border-color: rgba(34,211,238,.45); box-shadow: 0 0 45px rgba(34,211,238,.14); }
+    .game-card:hover::after { opacity: 1; transform: translateX(60%); }
+    .reveal { opacity: 0; transform: translateY(32px); transition: .75s cubic-bezier(.2,.8,.2,1); }
+    .reveal.show { opacity: 1; transform: translateY(0); }
+    .hud-link.active { color: white; background: rgba(34, 211, 238, .12); border-color: rgba(34, 211, 238, .35); }
+    .progress-line { position: fixed; top: 0; left: 0; height: 4px; width: 0%; z-index: 80; background: linear-gradient(90deg, #3b82f6, #22d3ee, #8b5cf6); box-shadow: 0 0 24px rgba(34,211,238,.8); }
+    .scanline::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(34,211,238,.08), transparent); animation: scan 4.5s linear infinite; pointer-events: none; }
     input, select, textarea { outline: none; }
     select option { color: #111827; }
-    .loader {
-      width: 18px;
-      height: 18px;
-      border: 3px solid rgba(255,255,255,.35);
-      border-top-color: white;
-      border-radius: 999px;
-      animation: spin .7s linear infinite;
-    }
+    .loader { width: 18px; height: 18px; border: 3px solid rgba(255,255,255,.35); border-top-color: white; border-radius: 999px; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    select {
-      appearance: none;
-      background-image:
-        linear-gradient(45deg, transparent 50%, rgba(255,255,255,.9) 50%),
-        linear-gradient(135deg, rgba(255,255,255,.9) 50%, transparent 50%);
-      background-position:
-        calc(100% - 20px) calc(50% - 3px),
-        calc(100% - 14px) calc(50% - 3px);
-      background-size: 6px 6px, 6px 6px;
-      background-repeat: no-repeat;
-      padding-right: 44px !important;
-      text-overflow: ellipsis;
-    }
-
-    @media (max-width: 640px) {
-      #complaintForm {
-        border-radius: 1.5rem;
-      }
-    }
-
+    select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, rgba(255,255,255,.9) 50%), linear-gradient(135deg, rgba(255,255,255,.9) 50%, transparent 50%); background-position: calc(100% - 20px) calc(50% - 3px), calc(100% - 14px) calc(50% - 3px); background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; padding-right: 44px !important; text-overflow: ellipsis; }
   </style>
 </head>
-
 <body class="font-inter">
   <div id="progressBar" class="progress-line"></div>
-
   <div class="fixed -top-28 -left-28 w-96 h-96 bg-cyanx/20 blur-3xl rounded-full pointer-events-none z-0 animate-pulseSoft"></div>
   <div class="fixed top-40 -right-28 w-[30rem] h-[30rem] bg-purplex/20 blur-3xl rounded-full pointer-events-none z-0 animate-pulseSoft"></div>
   <div id="orb" class="fixed bottom-0 left-1/2 w-[28rem] h-[28rem] bg-bluex/10 blur-3xl rounded-full pointer-events-none z-0"></div>
@@ -196,25 +100,16 @@
   <header class="sticky top-4 z-50 w-[min(1180px,calc(100%-24px))] mx-auto">
     <div class="glass rounded-3xl px-4 py-3 flex items-center justify-between shadow-card">
       <a href="#home" class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-bluex via-cyanx to-purplex grid place-items-center font-black shadow-glow">
-          FT
-        </div>
-        <div class="leading-tight">
-          <h1 class="font-black tracking-tight">FT UNTAD</h1>
-          <p class="text-xs text-slate-400">Academic Service Complaint System</p>
-        </div>
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-bluex via-cyanx to-purplex grid place-items-center font-black shadow-glow">FT</div>
+        <div class="leading-tight"><h1 class="font-black tracking-tight">FT UNTAD</h1><p class="text-xs text-slate-400">Academic Service Complaint System</p></div>
       </a>
-
       <nav class="hidden md:flex items-center gap-2 text-sm text-slate-300">
         <a class="hud-link px-4 py-2 rounded-full border border-transparent transition" href="#layanan">Layanan</a>
         <a class="hud-link px-4 py-2 rounded-full border border-transparent transition" href="#alur">Alur</a>
         <a class="hud-link px-4 py-2 rounded-full border border-transparent transition" href="#pengaduan">Pengaduan</a>
         <a class="hud-link px-4 py-2 rounded-full border border-transparent transition" href="#dashboard">Dashboard</a>
       </nav>
-
-      <a href="#pengaduan" class="hidden sm:inline-flex px-5 py-3 rounded-full bg-white/10 border border-white/15 hover:bg-white/15 transition font-bold text-sm">
-        Buat Aduan
-      </a>
+      <a href="#pengaduan" class="hidden sm:inline-flex px-5 py-3 rounded-full bg-white/10 border border-white/15 hover:bg-white/15 transition font-bold text-sm">Buat Aduan</a>
     </div>
   </header>
 
@@ -222,770 +117,123 @@
     <section id="home" class="min-h-[calc(100vh-96px)] w-[min(1180px,calc(100%-24px))] mx-auto grid lg:grid-cols-[1.03fr_.97fr] gap-10 items-center pt-16 pb-20">
       <div class="reveal">
         <div class="inline-flex items-center gap-3 rounded-full border border-cyanx/25 bg-cyanx/10 px-4 py-2 text-sm text-cyan-100 mb-7">
-          <span class="w-2.5 h-2.5 rounded-full bg-greenx shadow-[0_0_0_8px_rgba(34,197,94,.16)]"></span>
-          Untuk Mahasiswa, Dosen, Operator, dan Tendik
+          <span id="heroStatusDot" class="w-2.5 h-2.5 rounded-full bg-greenx shadow-[0_0_0_8px_rgba(34,197,94,.16)]"></span> Untuk Mahasiswa, Dosen, Operator, dan Tendik
         </div>
-
-        <h2 class="text-5xl sm:text-6xl lg:text-8xl font-black tracking-[-0.075em] leading-[.9]">
-          Selamat datang.
-        </h2>
-
-        <p class="mt-7 text-slate-300 text-lg leading-8 max-w-2xl">
-          Website pengaduan pelayanan sistem akademik Fakultas Teknik Universitas Tadulako.
-          Silakan isi data dan jelaskan kendala Anda terkait SIGA-8, nilai, jadwal, KRS, akses akun, atau layanan akademik lainnya.
-        </p>
-
+        <h2 class="text-5xl sm:text-6xl lg:text-8xl font-black tracking-[-0.075em] leading-[.9]">Selamat datang.<span class="block text-transparent bg-clip-text bg-gradient-to-r from-cyanx via-bluex to-purplex">Silakan isi permasalahan Anda.</span></h2>
+        <p class="mt-7 text-slate-300 text-lg leading-8 max-w-2xl">Website pengaduan pelayanan sistem akademik Fakultas Teknik Universitas Tadulako. Silakan isi data dan jelaskan kendala terkait SIGA-8, nilai, jadwal, KRS, akses akun, atau layanan akademik lainnya.</p>
+        <div class="mt-9 flex flex-wrap gap-4"><a href="#pengaduan" class="px-6 py-4 rounded-full bg-gradient-to-r from-bluex to-cyanx font-black shadow-glowBlue hover:scale-[1.02] transition">Kirim Pengaduan</a><a href="#dashboard" class="px-6 py-4 rounded-full glass font-black hover:bg-white/15 transition">Pantau Dashboard</a></div>
         <div class="mt-10 glass rounded-[2rem] p-5 max-w-2xl game-card">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <p class="text-sm text-slate-400">Status Pelayanan Akademik</p>
-              <h3 id="serviceStatusText" class="text-3xl font-black mt-1">Mengecek waktu...</h3>
-              <p class="text-sm text-slate-400 mt-2">Pelayanan terbuka pukul <b class="text-white">08.00–16.00 WITA</b>.</p>
-            </div>
-            <div class="shrink-0 rounded-3xl bg-black/25 border border-white/10 px-5 py-4 text-center">
-              <p class="text-xs text-slate-400 font-bold">Waktu WITA</p>
-              <p id="witaClock" class="text-3xl font-black mt-1">--:--</p>
-            </div>
-          </div>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"><div><p class="text-sm text-slate-400">Status Pelayanan Akademik</p><h3 id="serviceStatusText" class="text-3xl font-black mt-1">Mengecek waktu...</h3><p class="text-sm text-slate-400 mt-2">Pelayanan terbuka pukul <b class="text-white">08.00–16.00 WITA</b>.</p></div><div class="shrink-0 rounded-3xl bg-black/25 border border-white/10 px-5 py-4 text-center"><p class="text-xs text-slate-400 font-bold">Waktu WITA</p><p id="witaClock" class="text-3xl font-black mt-1">--:--</p></div></div>
         </div>
       </div>
-
       <div class="relative reveal">
-        <div class="absolute -top-10 right-10 w-40 h-40 bg-cyanx/40 blur-3xl rounded-full"></div>
-        <div class="absolute -bottom-10 left-8 w-56 h-56 bg-purplex/35 blur-3xl rounded-full"></div>
-
+        <div class="absolute -top-10 right-10 w-40 h-40 bg-cyanx/40 blur-3xl rounded-full"></div><div class="absolute -bottom-10 left-8 w-56 h-56 bg-purplex/35 blur-3xl rounded-full"></div>
         <div class="relative glass-strong rounded-[2rem] p-4 shadow-card animate-float scanline overflow-hidden">
-          <div class="flex items-center gap-2 px-2 pb-4">
-            <span class="w-3 h-3 rounded-full bg-red-400/70"></span>
-            <span class="w-3 h-3 rounded-full bg-yellow-400/70"></span>
-            <span class="w-3 h-3 rounded-full bg-green-400/70"></span>
-            <p class="ml-3 text-xs text-slate-400">FT Academic Service Dashboard</p>
-          </div>
-
+          <div class="flex items-center gap-2 px-2 pb-4"><span class="w-3 h-3 rounded-full bg-red-400/70"></span><span class="w-3 h-3 rounded-full bg-yellow-400/70"></span><span class="w-3 h-3 rounded-full bg-green-400/70"></span><p class="ml-3 text-xs text-slate-400">FT Academic Service Dashboard</p></div>
           <div class="grid grid-cols-2 gap-4">
-            <div class="rounded-3xl p-5 bg-gradient-to-br from-bluex/35 to-cyanx/10 border border-cyanx/20">
-              <p class="text-sm text-cyan-100">Total Aduan</p>
-              <h3 id="heroTotal" class="text-5xl font-black mt-2">0</h3>
-              <p class="text-xs text-slate-300 mt-2">Sinkron ke Spreadsheet</p>
-            </div>
-            <div class="rounded-3xl p-5 bg-white/7 border border-white/10">
-              <p class="text-sm text-slate-400">Dosen</p>
-              <h3 id="heroDosen" class="text-5xl font-black mt-2">0</h3>
-              <p class="text-xs text-slate-400 mt-2">Aduan akademik</p>
-            </div>
-            <div class="rounded-3xl p-5 bg-white/7 border border-white/10">
-              <p class="text-sm text-slate-400">Mahasiswa</p>
-              <h3 id="heroMahasiswa" class="text-5xl font-black mt-2">0</h3>
-              <p class="text-xs text-slate-400 mt-2">KRS, akun, data</p>
-            </div>
-            <div class="rounded-3xl p-5 bg-white/7 border border-white/10">
-              <p class="text-sm text-slate-400">Urgent</p>
-              <h3 id="heroUrgent" class="text-5xl font-black mt-2">0</h3>
-              <p class="text-xs text-orange-200 mt-2">Butuh tindak lanjut</p>
-            </div>
+            <div class="rounded-3xl p-5 bg-gradient-to-br from-bluex/35 to-cyanx/10 border border-cyanx/20"><p class="text-sm text-cyan-100">Total Aduan</p><h3 id="heroTotal" class="text-5xl font-black mt-2">0</h3><p class="text-xs text-slate-300 mt-2">Live dari Spreadsheet</p></div>
+            <div class="rounded-3xl p-5 bg-white/7 border border-white/10"><p class="text-sm text-slate-400">Dosen</p><h3 id="heroDosen" class="text-5xl font-black mt-2">0</h3><p class="text-xs text-slate-400 mt-2">Aduan akademik</p></div>
+            <div class="rounded-3xl p-5 bg-white/7 border border-white/10"><p class="text-sm text-slate-400">Mahasiswa</p><h3 id="heroMahasiswa" class="text-5xl font-black mt-2">0</h3><p class="text-xs text-slate-400 mt-2">KRS, akun, data</p></div>
+            <div class="rounded-3xl p-5 bg-white/7 border border-white/10"><p class="text-sm text-slate-400">Urgent</p><h3 id="heroUrgent" class="text-5xl font-black mt-2">0</h3><p class="text-xs text-orange-200 mt-2">Butuh tindak lanjut</p></div>
           </div>
-
-          <div id="heroTicketList" class="mt-4 space-y-3">
-            <div class="rounded-3xl p-5 bg-black/20 border border-white/10 text-center">
-              <p class="font-black text-slate-200">Belum ada aduan masuk</p>
-              <p class="text-xs text-slate-400 mt-2">Data akan muncul otomatis setelah form dikirim.</p>
-            </div>
-          </div>
+          <div id="heroTicketList" class="mt-4 space-y-3"><div class="rounded-3xl p-5 bg-black/20 border border-white/10 text-center"><p class="font-black text-slate-200">Belum ada aduan masuk</p><p class="text-xs text-slate-400 mt-2">Data akan muncul otomatis dari Spreadsheet.</p></div></div>
         </div>
       </div>
     </section>
 
     <section id="layanan" class="w-[min(1180px,calc(100%-24px))] mx-auto py-24">
-      <div class="reveal max-w-3xl">
-        <p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Jenis Layanan</p>
-        <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Satu portal buat mahasiswa dan dosen.</h2>
-        <p class="text-slate-400 leading-8 mt-5">Biar aduan dosen soal nilai dan akses sistem nggak nyampur berantakan sama aduan mahasiswa soal KRS.</p>
-      </div>
-
+      <div class="reveal max-w-3xl"><p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Jenis Layanan</p><h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Satu portal buat mahasiswa dan dosen.</h2><p class="text-slate-400 leading-8 mt-5">Aduan dosen soal nilai dan akses sistem tidak lagi nyampur dengan aduan mahasiswa soal KRS.</p></div>
       <div class="mt-10 grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <article class="reveal glass rounded-[2rem] p-7 game-card">
-          <div class="w-14 h-14 rounded-2xl bg-cyanx/10 grid place-items-center text-3xl mb-6">🧾</div>
-          <h3 class="font-black text-xl">KRS & Jadwal</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">KRS belum tampil, SKS bermasalah, kelas hilang, atau jadwal bentrok.</p>
-        </article>
-        <article class="reveal glass rounded-[2rem] p-7 game-card">
-          <div class="w-14 h-14 rounded-2xl bg-bluex/10 grid place-items-center text-3xl mb-6">🔐</div>
-          <h3 class="font-black text-xl">Akun SIGA-8</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">Login gagal, reset password, data profil tidak sinkron, atau akses terkunci.</p>
-        </article>
-        <article class="reveal glass rounded-[2rem] p-7 game-card">
-          <div class="w-14 h-14 rounded-2xl bg-purplex/10 grid place-items-center text-3xl mb-6">📊</div>
-          <h3 class="font-black text-xl">Input Nilai Dosen</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">Menu input nilai tidak tampil, kelas ampuan tidak muncul, atau nilai gagal tersimpan.</p>
-        </article>
-        <article class="reveal glass rounded-[2rem] p-7 game-card">
-          <div class="w-14 h-14 rounded-2xl bg-greenx/10 grid place-items-center text-3xl mb-6">👨‍🏫</div>
-          <h3 class="font-black text-xl">Data Dosen</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">NIDN/NIP, jadwal mengajar, kelas ampuan, pembimbing, penguji, dan data akademik dosen.</p>
-        </article>
+        <article class="reveal glass rounded-[2rem] p-7 game-card"><div class="w-14 h-14 rounded-2xl bg-cyanx/10 grid place-items-center text-3xl mb-6">🧾</div><h3 class="font-black text-xl">KRS & Jadwal</h3><p class="text-slate-400 text-sm leading-7 mt-3">KRS belum tampil, SKS bermasalah, kelas hilang, atau jadwal bentrok.</p></article>
+        <article class="reveal glass rounded-[2rem] p-7 game-card"><div class="w-14 h-14 rounded-2xl bg-bluex/10 grid place-items-center text-3xl mb-6">🔐</div><h3 class="font-black text-xl">Akun SIGA-8</h3><p class="text-slate-400 text-sm leading-7 mt-3">Login gagal, reset password, data profil tidak sinkron, atau akses terkunci.</p></article>
+        <article class="reveal glass rounded-[2rem] p-7 game-card"><div class="w-14 h-14 rounded-2xl bg-purplex/10 grid place-items-center text-3xl mb-6">📊</div><h3 class="font-black text-xl">Input Nilai Dosen</h3><p class="text-slate-400 text-sm leading-7 mt-3">Menu input nilai tidak tampil, kelas ampuan tidak muncul, atau nilai gagal tersimpan.</p></article>
+        <article class="reveal glass rounded-[2rem] p-7 game-card"><div class="w-14 h-14 rounded-2xl bg-greenx/10 grid place-items-center text-3xl mb-6">👨‍🏫</div><h3 class="font-black text-xl">Data Dosen</h3><p class="text-slate-400 text-sm leading-7 mt-3">NIDN/NIP, jadwal mengajar, kelas ampuan, pembimbing, penguji, dan data akademik dosen.</p></article>
       </div>
     </section>
 
     <section id="alur" class="w-[min(1180px,calc(100%-24px))] mx-auto py-24">
-      <div class="reveal max-w-3xl">
-        <p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Quest Flow</p>
-        <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Aduan masuk, Diproses, Selesai.</h2>
-      </div>
-
+      <div class="reveal max-w-3xl"><p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Quest Flow</p><h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Aduan masuk, Spreadsheet update, status ikut berubah.</h2></div>
       <div class="mt-10 grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="reveal glass rounded-[2rem] p-7 game-card">
-          <b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-cyanx/10 text-cyan-200 mb-6">01</b>
-          <h3 class="font-black text-xl">Isi Form</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">Pelapor pilih status: mahasiswa, dosen, operator, atau tendik.</p>
-        </div>
-        <div class="reveal glass rounded-[2rem] p-7 game-card">
-          <b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-bluex/10 text-blue-200 mb-6">02</b>
-          <h3 class="font-black text-xl">Masuk Sheets</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">Data otomatis tersimpan di database Form Aduan.</p>
-        </div>
-        <div class="reveal glass rounded-[2rem] p-7 game-card">
-          <b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-purplex/10 text-purple-200 mb-6">03</b>
-          <h3 class="font-black text-xl">Email Notif</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">Admin akademik dapat email saat ada aduan baru.</p>
-        </div>
-        <div class="reveal glass rounded-[2rem] p-7 game-card">
-          <b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-greenx/10 text-green-200 mb-6">04</b>
-          <h3 class="font-black text-xl">Ditinjau</h3>
-          <p class="text-slate-400 text-sm leading-7 mt-3">Status dan catatan akan segera di proses oleh admin.</p>
-        </div>
+        <div class="reveal glass rounded-[2rem] p-7 game-card"><b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-cyanx/10 text-cyan-200 mb-6">01</b><h3 class="font-black text-xl">Isi Form</h3><p class="text-slate-400 text-sm leading-7 mt-3">Pelapor pilih status: mahasiswa, dosen, operator, atau tendik.</p></div>
+        <div class="reveal glass rounded-[2rem] p-7 game-card"><b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-bluex/10 text-blue-200 mb-6">02</b><h3 class="font-black text-xl">Masuk Sheets</h3><p class="text-slate-400 text-sm leading-7 mt-3">Data otomatis tersimpan di Google Spreadsheet.</p></div>
+        <div class="reveal glass rounded-[2rem] p-7 game-card"><b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-purplex/10 text-purple-200 mb-6">03</b><h3 class="font-black text-xl">Email Notif</h3><p class="text-slate-400 text-sm leading-7 mt-3">Admin akademik dapat email saat ada aduan baru.</p></div>
+        <div class="reveal glass rounded-[2rem] p-7 game-card"><b class="inline-grid place-items-center w-12 h-12 rounded-2xl bg-greenx/10 text-green-200 mb-6">04</b><h3 class="font-black text-xl">Status Live</h3><p class="text-slate-400 text-sm leading-7 mt-3">Jika status di Spreadsheet diubah, dashboard web ikut berubah otomatis.</p></div>
       </div>
     </section>
 
     <section id="pengaduan" class="w-[min(1180px,calc(100%-24px))] mx-auto py-24 grid lg:grid-cols-[.78fr_1.22fr] gap-8 items-start">
-      <div class="reveal">
-        <p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Form Pengaduan</p>
-        <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Dosen juga bisa ajukan pengaduan.</h2>
-        <p class="text-slate-400 leading-8 mt-5">
-          Silahkan pilih jenis kategorinya. Mahasiswa pakai Stambuk/NIM, dosen pakai NIDN/NIP,
-          operator/tendik pakai NIP/ID pegawai.
-        </p>
-
-        <div class="glass rounded-[2rem] p-6 mt-7 border-orange-300/20 bg-orange-400/10">
-          <h3 class="font-black text-orange-100">Catatan Penting</h3>
-          <p class="text-sm text-slate-300 leading-7 mt-2">
-            Harus menggunakan <b>Email Google/Gmail</b> atau kontak WhatsApp aktif agar balasan dan tindak lanjut pengaduan dapat di konfirmasi ke anda secara online.
-          </p>
-        </div>
+      <div class="reveal"><p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Form Pengaduan</p><h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Dosen juga bisa ajukan pengaduan.</h2><p class="text-slate-400 leading-8 mt-5">Field identitas akan menyesuaikan status pelapor. Mahasiswa pakai Stambuk/NIM, dosen pakai NIDN/NIP, operator/tendik pakai NIP/ID pegawai.</p>
+        <div class="glass rounded-[2rem] p-6 mt-7 border-orange-300/20 bg-orange-400/10"><h3 class="font-black text-orange-100">Catatan Penting</h3><p class="text-sm text-slate-300 leading-7 mt-2">Gunakan <b>Email Google/Gmail</b> atau kontak WhatsApp aktif agar balasan dan tindak lanjut pengaduan dapat dikirim kembali ke email atau WA Anda.</p></div>
+        <div class="glass rounded-[2rem] p-6 mt-5 border-cyanx/20 bg-cyanx/10"><h3 class="font-black text-cyan-100">Status Koneksi Spreadsheet</h3><p id="connectionStatus" class="text-sm text-slate-300 leading-7 mt-2">Mengecek koneksi...</p><p id="lastSyncText" class="text-xs text-slate-400 mt-2">Sinkron terakhir: -</p></div>
       </div>
-
       <form id="complaintForm" class="reveal glass-strong rounded-[2rem] p-5 sm:p-7 lg:p-8 shadow-card">
-        <div class="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <h3 class="text-2xl font-black tracking-[-.03em]">Form Pengaduan Akademik</h3>
-            <p class="text-sm text-slate-400 mt-2">Isi data dengan jelas agar operator lebih cepat memproses aduan.</p>
-          </div>
-          <span id="serviceBadge" class="hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-orange-400/10 border border-orange-300/20 text-orange-100 text-xs font-black">
-            MENGECEK
-          </span>
-        </div>
-
-        <div id="serviceNotice" class="mb-6 rounded-3xl border border-orange-300/20 bg-orange-400/10 px-5 py-4 text-sm text-orange-100 leading-7">
-          Mengecek status jam pelayanan. Form hanya dapat dikirim pukul <b>08.00–16.00 WITA</b>.
-        </div>
-
+        <div class="mb-6 flex items-start justify-between gap-4"><div><h3 class="text-2xl font-black tracking-[-.03em]">Form Pengaduan Akademik</h3><p class="text-sm text-slate-400 mt-2">Isi data dengan jelas agar operator lebih cepat memproses aduan.</p></div><span id="formServiceBadge" class="hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-cyanx/10 border border-cyanx/20 text-cyan-200 text-xs font-black">ONLINE</span></div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5">
-          <label class="grid gap-2 text-sm font-black text-slate-200">
-            Nama Lengkap
-            <input id="nama" name="nama" required type="text" placeholder="Contoh: Gledys" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
-          </label>
-
-          <label class="grid gap-2 text-sm font-black text-slate-200">
-            Status Pelapor
-            <select id="status" name="status" required class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
-              <option value="">Pilih status</option>
-              <option>Mahasiswa</option>
-              <option>Dosen</option>
-              <option>Operator Prodi</option>
-              <option>Tenaga Kependidikan</option>
-            </select>
-          </label>
-
-          <label class="grid gap-2 text-sm font-black text-slate-200">
-            <span id="identityLabel">Stambuk / NIM / NIDN / NIP</span>
-            <input id="identitas" name="identitas" required type="text" placeholder="Contoh: F111xxxxx / NIDN / NIP" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
-          </label>
-
-          <label class="grid gap-2 text-sm font-black text-slate-200">
-            Kontak WhatsApp / Email
-            <input id="kontak" name="kontak" required type="text" placeholder="Contoh: 08xxxxxxxxxx / email@gmail.com" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
-          </label>
-
-          <label class="grid gap-2 text-sm font-black text-slate-200">
-            Program Studi / Unit
-            <input id="prodi" name="prodi" required type="text" placeholder="Contoh: S1 Informatika / Fakultas Teknik" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
-          </label>
-
-          <label class="grid gap-2 text-sm font-black text-slate-200">
-            Kategori Aduan
-            <select id="kategori" name="kategori" required class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
-              <option value="">Pilih kategori</option>
-              <option>KRS & Jadwal Kuliah</option>
-              <option>Akun SIGA-8 / Login</option>
-              <option>Input Nilai Dosen</option>
-              <option>Nilai Akademik Mahasiswa</option>
-              <option>Data Mahasiswa</option>
-              <option>Data Dosen / Kelas Ampuan</option>
-              <option>Pembimbing / Penguji / Aktivitas Mengajar</option>
-              <option>Layanan Akademik Fakultas</option>
-            </select>
-          </label>
-
-          <label class="grid gap-2 text-sm font-black text-slate-200 md:col-span-2">
-            Prioritas
-            <select id="prioritas" name="prioritas" required class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
-              <option value="">Pilih prioritas</option>
-              <option>Rendah</option>
-              <option>Sedang</option>
-              <option>Tinggi</option>
-              <option>Urgent</option>
-            </select>
-          </label>
-
-          <label class="grid gap-2 text-sm font-black text-slate-200 md:col-span-2">
-            Judul Aduan
-            <input id="judul" name="judul" required type="text" placeholder="Contoh: Menu input nilai tidak tampil" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10">
-          </label>
-
-          <label class="grid gap-2 text-sm font-black text-slate-200 md:col-span-2">
-            Detail Permasalahan
-            <textarea id="detail" name="detail" required rows="5" placeholder="Jelaskan kronologi, tanggal kejadian, mata kuliah/kelas jika ada, dan data pendukung..." class="min-h-[150px] w-full rounded-2xl bg-black/25 border border-white/10 px-4 py-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10 resize-y leading-7"></textarea>
-          </label>
+          <label class="grid gap-2 text-sm font-black text-slate-200">Nama Lengkap<input id="nama" name="nama" required type="text" placeholder="Contoh: Eka Putri" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10"></label>
+          <label class="grid gap-2 text-sm font-black text-slate-200">Status Pelapor<select id="status" name="status" required class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white focus:border-cyanx focus:ring-4 focus:ring-cyanx/10"><option value="">Pilih status pelapor</option><option>Mahasiswa</option><option>Dosen</option><option>Operator/Admin Prodi</option><option>Tenaga Kependidikan / Akademik Fakultas</option></select></label>
+          <label class="grid gap-2 text-sm font-black text-slate-200"><span id="identityLabel">Stambuk / NIM / NIDN / NIP</span><input id="identitas" name="identitas" required type="text" placeholder="Contoh: F111xxxxxx / NIP" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10"></label>
+          <label class="grid gap-2 text-sm font-black text-slate-200">Kontak WhatsApp / Email<input id="kontak" name="kontak" required type="text" placeholder="Contoh: 08xxxxxxxxxx / email@gmail.com" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10"></label>
+          <label class="grid gap-2 text-sm font-black text-slate-200">Program Studi / Unit<input id="prodi" name="prodi" required type="text" placeholder="Contoh: S1 Informatika / Fakultas Teknik" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10"></label>
+          <label class="grid gap-2 text-sm font-black text-slate-200">Kategori Aduan<select id="kategori" name="kategori" required disabled class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white focus:border-cyanx focus:ring-4 focus:ring-cyanx/10 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">Pilih status pelapor dulu</option></select><span id="kategoriHint" class="text-xs text-slate-400 font-medium leading-5">Kategori aduan akan menyesuaikan status pelapor.</span></label>
+          <label class="grid gap-2 text-sm font-black text-slate-200 md:col-span-2">Prioritas<select id="prioritas" name="prioritas" required class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white focus:border-cyanx focus:ring-4 focus:ring-cyanx/10"><option value="">Pilih prioritas</option><option>Rendah</option><option>Sedang</option><option>Tinggi</option><option>Urgent</option></select></label>
+          <label class="grid gap-2 text-sm font-black text-slate-200 md:col-span-2">Judul Aduan<input id="judul" name="judul" required type="text" placeholder="Contoh: Lupa Password" class="h-14 w-full rounded-2xl bg-black/25 border border-white/10 px-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10"></label>
+          <label class="grid gap-2 text-sm font-black text-slate-200 md:col-span-2">Detail Permasalahan<textarea id="detail" name="detail" required rows="5" placeholder="Jelaskan kronologi, tanggal kejadian, mata kuliah/kelas jika ada, dan data pendukung..." class="min-h-[150px] w-full rounded-2xl bg-black/25 border border-white/10 px-4 py-4 text-white placeholder:text-slate-500 focus:border-cyanx focus:ring-4 focus:ring-cyanx/10 resize-y leading-7"></textarea></label>
         </div>
-
-        <div class="mt-7 flex flex-col sm:flex-row sm:items-center gap-4">
-          <button id="submitBtn" class="inline-flex w-full sm:w-auto items-center justify-center gap-3 px-7 py-4 rounded-full bg-gradient-to-r from-bluex to-cyanx font-black shadow-glowBlue hover:scale-[1.02] transition">
-            <span id="submitText">Kirim Aduan</span>
-            <span id="submitLoader" class="loader hidden"></span>
-          </button>
-
-          <p class="text-xs text-slate-400 leading-6">
-            Data akan masuk ke Google Sheets dan mengirim notifikasi email ke admin akademik.
-          </p>
-        </div>
+        <div class="mt-7 flex flex-col sm:flex-row sm:items-center gap-4"><button id="submitBtn" type="submit" class="inline-flex w-full sm:w-auto items-center justify-center gap-3 px-7 py-4 rounded-full bg-gradient-to-r from-bluex to-cyanx font-black shadow-glowBlue hover:scale-[1.02] transition"><span id="submitText"> Kirim Pengaduan </span><span id="submitLoader" class="loader hidden"></span></button><p id="submitHint" class="text-xs text-slate-400 leading-6">Data akan masuk ke Google Sheets dan mengirim notifikasi email ke admin akademik.</p></div>
       </form>
     </section>
 
     <section id="dashboard" class="w-[min(1180px,calc(100%-24px))] mx-auto py-24">
-      <div class="reveal max-w-3xl">
-        <p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Dashboard Mini</p>
-        <h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Preview aduan terbaru.</h2>
-        <p class="text-slate-400 leading-8 mt-5">
-          Data di bawah ini adalah data yang masuk ke database dan otomatis diperbarui berkala.
-        </p>
-      </div>
-
+      <div class="reveal max-w-3xl"><p class="text-cyanx font-black uppercase tracking-[.22em] text-sm">Dashboard Mini</p><h2 class="text-4xl sm:text-6xl font-black tracking-[-.06em] mt-3">Data Aduan Terbaru.</h2><p class="text-slate-400 leading-8 mt-5">Pantau saja Statusnya, Cek Berkala 1x24 jam.</p></div>
       <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="reveal glass rounded-[2rem] p-7 game-card">
-          <p class="text-sm text-slate-400">Pengaduan Hari Ini</p>
-          <h3 id="countToday" class="text-5xl font-black mt-2">0</h3>
-        </div>
-        <div class="reveal glass rounded-[2rem] p-7 game-card">
-          <p class="text-sm text-slate-400">Menunggu</p>
-          <h3 id="countWait" class="text-5xl font-black mt-2">0</h3>
-        </div>
-        <div class="reveal glass rounded-[2rem] p-7 game-card">
-          <p class="text-sm text-slate-400">Aduan Mahasiswa</p>
-          <h3 id="heroMahasiswa" class="text-5xl font-black mt-2">0</h3>
-        </div>
-        <div class="reveal glass rounded-[2rem] p-7 game-card">
-          <p class="text-sm text-slate-400">Status Layanan</p>
-          <h3 id="serviceStatusMini" class="text-5xl font-black mt-2">--</h3>
-        </div>
+        <div class="reveal glass rounded-[2rem] p-7 game-card"><p class="text-sm text-slate-400">Pengaduan Hari Ini</p><h3 id="countToday" class="text-5xl font-black mt-2">0</h3></div>
+        <div class="reveal glass rounded-[2rem] p-7 game-card"><p class="text-sm text-slate-400">Menunggu</p><h3 id="countWait" class="text-5xl font-black mt-2">0</h3></div>
+        <div class="reveal glass rounded-[2rem] p-7 game-card"><p class="text-sm text-slate-400">Selesai</p><h3 id="countDone" class="text-5xl font-black mt-2">0</h3></div>
+        <div class="reveal glass rounded-[2rem] p-7 game-card"><p class="text-sm text-slate-400">Status Layanan</p><h3 id="serviceStatusMini" class="text-5xl font-black mt-2">--</h3></div>
       </div>
-
-      <div class="reveal glass-strong rounded-[2rem] p-5 sm:p-7 mt-6 shadow-card">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-          <h3 class="text-2xl font-black">Daftar Aduan Terbaru</h3>
-          <span class="text-xs font-black text-cyan-200 bg-cyanx/10 border border-cyanx/20 px-3 py-2 rounded-full">LIVE SHEETS PREVIEW</span>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[900px] text-left">
-            <thead>
-              <tr class="border-b border-white/10 text-slate-400 text-sm">
-                <th class="py-4 px-3">Identitas</th>
-                <th class="py-4 px-3">Pelapor</th>
-                <th class="py-4 px-3">Kategori</th>
-                <th class="py-4 px-3">Judul</th>
-                <th class="py-4 px-3">Prioritas</th>
-                <th class="py-4 px-3">Status</th>
-              </tr>
-            </thead>
-            <tbody id="ticketTable" class="text-sm">
-              <tr id="emptyRow" class="border-b border-white/10">
-                <td colspan="6" class="py-10 px-3 text-center">
-                  <p class="font-black text-slate-200">Belum ada data pengaduan</p>
-                  <p class="text-slate-400 text-sm mt-2">Data dari Google Sheets masih kosong atau belum berhasil dimuat.</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <div class="reveal glass-strong rounded-[2rem] p-5 sm:p-7 mt-6 shadow-card"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5"><h3 class="text-2xl font-black">Daftar Aduan Terbaru</h3><span class="text-xs font-black text-cyan-200 bg-cyanx/10 border border-cyanx/20 px-3 py-2 rounded-full">LIVE SHEETS PREVIEW</span></div><div class="overflow-x-auto"><table class="w-full min-w-[980px] text-left"><thead><tr class="border-b border-white/10 text-slate-400 text-sm"><th class="py-4 px-3">Kode</th><th class="py-4 px-3">Pelapor</th><th class="py-4 px-3">Kategori</th><th class="py-4 px-3">Judul</th><th class="py-4 px-3">Prioritas</th><th class="py-4 px-3">Status</th><th class="py-4 px-3">Catatan</th></tr></thead><tbody id="ticketTable" class="text-sm"><tr id="emptyRow" class="border-b border-white/10"><td colspan="7" class="py-10 px-3 text-center"><p class="font-black text-slate-200">Belum ada data pengaduan</p><p class="text-slate-400 text-sm mt-2">Data dari Google Sheets masih kosong atau belum berhasil dimuat.</p></td></tr></tbody></table></div></div>
     </section>
   </main>
 
-  <footer class="relative z-10 w-[min(1180px,calc(100%-24px))] mx-auto mb-8 mt-10">
-    <div class="glass rounded-[2rem] p-7 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div>
-        <h3 class="font-black">Fakultas Teknik Universitas Tadulako</h3>
-      </div>
-      <a href="#home" aria-label="Kembali ke atas" title="Kembali ke atas" class="w-12 h-12 rounded-full bg-white/10 border border-white/15 font-black text-xl hover:bg-white/15 transition grid place-items-center">↑</a>
-    </div>
-  </footer>
-
-  <div id="toast" class="fixed right-5 bottom-5 translate-y-28 opacity-0 transition z-[90] rounded-2xl bg-greenx text-green-950 font-black px-5 py-4 shadow-card max-w-[calc(100%-40px)]">
-    Aduan berhasil masuk.
-  </div>
+  <footer class="relative z-10 w-[min(1180px,calc(100%-24px))] mx-auto mb-8 mt-10"><div class="glass rounded-[2rem] p-7 flex flex-col md:flex-row md:items-center md:justify-between gap-4"><div><h3 class="font-black">Akademik@2026</h3><p class="text-sm text-slate-400 mt-1">Sistem Pengaduan Pelayanan Akademik Digital Fakultas Teknik Universitas Tadulako.</p></div><a href="#home" aria-label="Kembali ke atas" title="Kembali ke atas" class="w-12 h-12 rounded-full bg-white/10 border border-white/15 font-black text-xl hover:bg-white/15 transition grid place-items-center">↑</a></div></footer>
+  <div id="toast" class="fixed right-5 bottom-5 translate-y-28 opacity-0 transition z-[90] rounded-2xl bg-greenx text-green-950 font-black px-5 py-4 shadow-card max-w-[calc(100%-40px)]">Aduan berhasil masuk.</div>
 
   <script>
-    const progressBar = document.getElementById("progressBar");
-    const orb = document.getElementById("orb");
-    const revealEls = document.querySelectorAll(".reveal");
-    const navLinks = document.querySelectorAll(".hud-link");
-    const sections = ["layanan", "alur", "pengaduan", "dashboard"].map(id => document.getElementById(id));
+    const progressBar = document.getElementById("progressBar"), orb = document.getElementById("orb"), revealEls = document.querySelectorAll(".reveal"), navLinks = document.querySelectorAll(".hud-link"), sections = ["layanan", "alur", "pengaduan", "dashboard"].map(id => document.getElementById(id));
+    const statusField = document.getElementById("status"), identityLabel = document.getElementById("identityLabel"), identityInput = document.getElementById("identitas"), kategoriField = document.getElementById("kategori"), kategoriHint = document.getElementById("kategoriHint");
+    const form = document.getElementById("complaintForm"), table = document.getElementById("ticketTable"), toast = document.getElementById("toast");
+    const countToday = document.getElementById("countToday"), countWait = document.getElementById("countWait"), countDone = document.getElementById("countDone");
+    const heroTotal = document.getElementById("heroTotal"), heroDosen = document.getElementById("heroDosen"), heroMahasiswa = document.getElementById("heroMahasiswa"), heroUrgent = document.getElementById("heroUrgent"), heroTicketList = document.getElementById("heroTicketList");
+    const witaClock = document.getElementById("witaClock"), serviceStatusText = document.getElementById("serviceStatusText"), serviceStatusMini = document.getElementById("serviceStatusMini"), heroStatusDot = document.getElementById("heroStatusDot");
+    const submitBtn = document.getElementById("submitBtn"), submitText = document.getElementById("submitText"), submitLoader = document.getElementById("submitLoader"), submitHint = document.getElementById("submitHint"), formServiceBadge = document.getElementById("formServiceBadge");
+    const connectionStatus = document.getElementById("connectionStatus"), lastSyncText = document.getElementById("lastSyncText");
+    let isServiceOpen = false, isSending = false;
 
-    function updateProgress() {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-      progressBar.style.width = progress + "%";
+    function updateProgress(){const s=window.scrollY,d=document.documentElement.scrollHeight-window.innerHeight,p=d>0?s/d*100:0; progressBar.style.width=p+"%"; if(orb) orb.style.transform=`translate(-50%, ${s*-0.035}px) scale(${1+p/450})`;}
+    const observer=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add("show")}),{threshold:.14}); revealEls.forEach(el=>observer.observe(el));
+    const sectionObserver=new IntersectionObserver(e=>e.forEach(x=>{if(!x.isIntersecting)return; navLinks.forEach(l=>l.classList.toggle("active",l.getAttribute("href")==="#"+x.target.id))}),{threshold:.45}); sections.forEach(s=>s&&sectionObserver.observe(s));
+    window.addEventListener("scroll",updateProgress); updateProgress();
 
-      if (orb) {
-        orb.style.transform = `translate(-50%, ${scrollTop * -0.035}px) scale(${1 + progress / 450})`;
-      }
-    }
+    const CATEGORY_BY_STATUS={"Mahasiswa":["Mahasiswa Lupa Password SIGA-8","Verifikasi Transkrip Nilai","Sinkronisasi Nilai","Surat Penelitian","Layanan Akademik Fakultas - Persuratan Akademik","Lainnya / Tulis di Detail Permasalahan"],"Dosen":["Reset Password SIGA-8","Pembimbing/Penguji/Aktivitas Mengajar","Data Dosen/Kelas Ampuan","Layanan Akademik Fakultas - Persuratan Akademik","Lainnya / Tulis di Detail Permasalahan"],"Operator/Admin Prodi":["Penjadwalan Mata Kuliah","KRS/KHS Mahasiswa","Nilai Akademik Mahasiswa","Layanan Akademik Fakultas - Persuratan Akademik","Lainnya / Tulis di Detail Permasalahan"],"Tenaga Kependidikan / Akademik Fakultas":["Persuratan Akademik Fakultas","Surat Penelitian","Verifikasi Dokumen Akademik","Layanan Akademik Fakultas Lainnya","Lainnya / Tulis di Detail Permasalahan"]};
+    function updateKategoriOptions(status){const list=CATEGORY_BY_STATUS[status]||[]; kategoriField.innerHTML=""; const first=document.createElement("option"); first.value=""; first.textContent=list.length?"Pilih kategori aduan":"Pilih status pelapor dulu"; kategoriField.appendChild(first); list.forEach(item=>{const option=document.createElement("option"); option.value=item; option.textContent=item; kategoriField.appendChild(option);}); kategoriField.disabled=!list.length; if(kategoriHint){kategoriHint.textContent=list.length?`Kategori aduan untuk ${status}. Jika tidak ada yang cocok, pilih Lainnya lalu jelaskan di Detail Permasalahan.`:"Kategori aduan akan menyesuaikan status pelapor.";}}
+    statusField.addEventListener("change",()=>{const s=statusField.value; if(s==="Mahasiswa"){identityLabel.textContent="Stambuk / NIM"; identityInput.placeholder="Contoh: F5522530008";} else if(s==="Dosen"){identityLabel.textContent="NIDN / NIP Dosen"; identityInput.placeholder="Contoh: 0012345678 / 197xxxxxxxxxxxxx";} else if(s==="Operator/Admin Prodi"||s==="Tenaga Kependidikan / Akademik Fakultas"){identityLabel.textContent="NIP / ID Pegawai"; identityInput.placeholder="Contoh: NIP / ID internal";} else {identityLabel.textContent="Stambuk / NIM / NIDN / NIP"; identityInput.placeholder="Contoh mahasiswa: F5522530008 / dosen: NIDN atau NIP";} updateKategoriOptions(s);});
+    updateKategoriOptions(statusField.value);
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add("show");
-      });
-    }, { threshold: 0.14 });
-
-    revealEls.forEach(el => observer.observe(el));
-
-    const sectionObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        navLinks.forEach(link => {
-          link.classList.toggle("active", link.getAttribute("href") === "#" + entry.target.id);
-        });
-      });
-    }, { threshold: 0.45 });
-
-    sections.forEach(section => section && sectionObserver.observe(section));
-
-    window.addEventListener("scroll", updateProgress);
-    updateProgress();
-
-    const statusField = document.getElementById("status");
-    const identityLabel = document.getElementById("identityLabel");
-    const identityInput = document.getElementById("identitas");
-
-    statusField.addEventListener("change", () => {
-      const status = statusField.value;
-
-      if (status === "Mahasiswa") {
-        identityLabel.textContent = "Stambuk / NIM";
-        identityInput.placeholder = "Contoh: F5522530008";
-      } else if (status === "Dosen") {
-        identityLabel.textContent = "NIDN / NIP Dosen";
-        identityInput.placeholder = "Contoh: 0012345678 / 197xxxxxxxxxxxxx";
-      } else if (status === "Operator Prodi" || status === "Tenaga Kependidikan") {
-        identityLabel.textContent = "NIP / ID Pegawai";
-        identityInput.placeholder = "Contoh: NIP / ID internal";
-      } else {
-        identityLabel.textContent = "Stambuk / NIM / NIDN / NIP";
-        identityInput.placeholder = "Contoh mahasiswa: F5522530008 / dosen: NIDN atau NIP";
-      }
-    });
-
-    const form = document.getElementById("complaintForm");
-    const table = document.getElementById("ticketTable");
-    const toast = document.getElementById("toast");
-    const countToday = document.getElementById("countToday");
-    const countWait = document.getElementById("countWait");
-    const countDosen = document.getElementById("countDosen");
-    const heroTotal = document.getElementById("heroTotal");
-    const heroDosen = document.getElementById("heroDosen");
-    const heroMahasiswa = document.getElementById("heroMahasiswa");
-    const heroUrgent = document.getElementById("heroUrgent");
-    const heroTicketList = document.getElementById("heroTicketList");
-    const witaClock = document.getElementById("witaClock");
-    const serviceStatusText = document.getElementById("serviceStatusText");
-    const serviceStatusMini = document.getElementById("serviceStatusMini");
-    const submitBtn = document.getElementById("submitBtn");
-    const submitText = document.getElementById("submitText");
-    const submitLoader = document.getElementById("submitLoader");
-    const serviceBadge = document.getElementById("serviceBadge");
-    const serviceNotice = document.getElementById("serviceNotice");
-
-    let todayCount = 0;
-    let waitCount = 0;
-    let dosenCount = 0;
-    let totalCount = 0;
-    let serviceIsOpen = false;
-    const LOCAL_STORAGE_KEY = "ft_untad_pengaduan_preview_v1";
-    const SHEET_REFRESH_INTERVAL = 15000;
-    let hasLoadedSheetOnce = false;
-    let isSyncingSheet = false;
-
-    function getStoredTickets() {
-      try {
-        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || "[]");
-      } catch (error) {
-        console.error(error);
-        return [];
-      }
-    }
-
-    function saveStoredTickets(rows = []) {
-      try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(rows.slice(0, 50)));
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    function buildStatsFromRows(rows = []) {
-      const today = new Date().toLocaleDateString("id-ID", { timeZone: "Asia/Makassar" });
-      return rows.reduce((stats, row) => {
-        const rowDate = row.tanggalInput || row.tanggal || row.createdAt || "";
-        const rowDateText = rowDate ? new Date(rowDate).toLocaleDateString("id-ID", { timeZone: "Asia/Makassar" }) : today;
-
-        stats.total += 1;
-        if (rowDateText === today) stats.today += 1;
-        if ((row.statusAduan || "Menunggu") === "Menunggu") stats.wait += 1;
-        if (row.status === "Dosen") stats.dosen += 1;
-        if (row.status === "Mahasiswa") stats.mahasiswa += 1;
-        if (row.prioritas === "Urgent") stats.urgent += 1;
-        return stats;
-      }, { total: 0, today: 0, wait: 0, dosen: 0, mahasiswa: 0, urgent: 0 });
-    }
-
-    function renderStoredTickets() {
-      const rows = getStoredTickets();
-      setStats(buildStatsFromRows(rows));
-      renderRows(rows);
-    }
-
-    function showToast(message, type = "success") {
-      toast.textContent = message;
-
-      if (type === "error") {
-        toast.className = "fixed right-5 bottom-5 transition z-[90] rounded-2xl bg-redx text-white font-black px-5 py-4 shadow-card max-w-[calc(100%-40px)]";
-      } else {
-        toast.className = "fixed right-5 bottom-5 transition z-[90] rounded-2xl bg-greenx text-green-950 font-black px-5 py-4 shadow-card max-w-[calc(100%-40px)]";
-      }
-
-      toast.classList.remove("translate-y-28", "opacity-0");
-      toast.classList.add("translate-y-0", "opacity-100");
-
-      setTimeout(() => {
-        toast.classList.add("translate-y-28", "opacity-0");
-        toast.classList.remove("translate-y-0", "opacity-100");
-      }, 3800);
-    }
-
-    function updateSubmitButtonState(isLoading = false) {
-      if (isLoading) {
-        submitBtn.disabled = true;
-        submitBtn.classList.add("opacity-70", "cursor-not-allowed");
-        submitText.textContent = "Mengirim...";
-        submitLoader.classList.remove("hidden");
-        return;
-      }
-
-      submitLoader.classList.add("hidden");
-      submitBtn.disabled = !serviceIsOpen;
-      submitBtn.classList.toggle("opacity-70", !serviceIsOpen);
-      submitBtn.classList.toggle("cursor-not-allowed", !serviceIsOpen);
-      submitBtn.classList.toggle("hover:scale-[1.02]", serviceIsOpen);
-      submitText.textContent = serviceIsOpen ? "Kirim ke Spreadsheet" : "Pelayanan Tutup";
-    }
-
-    function setLoading(isLoading) {
-      updateSubmitButtonState(isLoading);
-    }
-
-    function addLocalRow(data, kodeAduan) {
-      const emptyRow = document.getElementById("emptyRow");
-      if (emptyRow) emptyRow.remove();
-
-      const row = document.createElement("tr");
-      row.className = "border-b border-white/10";
-      row.innerHTML = `
-        <td class="py-4 px-3 font-black">${kodeAduan}</td>
-        <td class="py-4 px-3">${data.status}</td>
-        <td class="py-4 px-3">${data.kategori}</td>
-        <td class="py-4 px-3">${data.judul}</td>
-        <td class="py-4 px-3">${data.prioritas}</td>
-        <td class="py-4 px-3"><span class="px-3 py-1 rounded-full bg-orangex/10 text-orange-200 font-black text-xs">Menunggu</span></td>
-      `;
-
-      table.prepend(row);
-      todayCount += 1;
-      waitCount += 1;
-      totalCount += 1;
-
-      if (data.status === "Dosen") {
-        dosenCount += 1;
-      }
-
-      countToday.textContent = todayCount;
-      countWait.textContent = waitCount;
-      countDosen.textContent = dosenCount;
-      if (heroTotal) heroTotal.textContent = totalCount;
-      if (heroDosen) heroDosen.textContent = dosenCount;
-      if (heroMahasiswa && data.status === "Mahasiswa") {
-        heroMahasiswa.textContent = Number(heroMahasiswa.textContent || 0) + 1;
-      }
-      if (heroUrgent && data.prioritas === "Urgent") {
-        heroUrgent.textContent = Number(heroUrgent.textContent || 0) + 1;
-      }
-
-      if (heroTicketList) {
-        const existingEmpty = heroTicketList.querySelector(".text-center");
-        if (existingEmpty) heroTicketList.innerHTML = "";
-        const heroItem = document.createElement("div");
-        heroItem.className = "rounded-3xl p-4 bg-black/20 border border-white/10 flex items-center justify-between gap-4";
-        heroItem.innerHTML = `
-          <div>
-            <h4 class="font-black">${data.judul}</h4>
-            <p class="text-xs text-slate-400 mt-1">${data.status} • ${kodeAduan}</p>
-          </div>
-          <span class="text-xs font-black px-3 py-1 rounded-full bg-orangex/10 text-orange-200">Menunggu</span>
-        `;
-        heroTicketList.prepend(heroItem);
-      }
-
-      const storedRows = getStoredTickets();
-      saveStoredTickets([{
-        ...data,
-        kodeAduan,
-        statusAduan: "Menunggu",
-        createdAt: new Date().toISOString()
-      }, ...storedRows]);
-    }
-
-    
-    function getWitaDate() {
-      const now = new Date();
-      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-      return new Date(utc + (8 * 60 * 60 * 1000));
-    }
-
-    function updateServiceTime() {
-      const wita = getWitaDate();
-      const hours = wita.getHours();
-      const minutes = wita.getMinutes();
-      const timeText = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-      const isOpen = hours >= 8 && hours < 16;
-      serviceIsOpen = isOpen;
-
-      if (witaClock) witaClock.textContent = timeText;
-      if (serviceStatusText) {
-        serviceStatusText.textContent = isOpen ? "Pelayanan sedang terbuka" : "Pelayanan sedang tertutup";
-        serviceStatusText.classList.toggle("text-green-200", isOpen);
-        serviceStatusText.classList.toggle("text-orange-200", !isOpen);
-      }
-      if (serviceStatusMini) {
-        serviceStatusMini.textContent = isOpen ? "BUKA" : "TUTUP";
-        serviceStatusMini.classList.toggle("text-green-200", isOpen);
-        serviceStatusMini.classList.toggle("text-orange-200", !isOpen);
-      }
-      if (serviceBadge) {
-        serviceBadge.textContent = isOpen ? "ONLINE" : "TUTUP";
-        serviceBadge.className = isOpen
-          ? "hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-greenx/10 border border-greenx/20 text-green-200 text-xs font-black"
-          : "hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-orange-400/10 border border-orange-300/20 text-orange-100 text-xs font-black";
-      }
-      if (serviceNotice) {
-        serviceNotice.className = isOpen
-          ? "mb-6 rounded-3xl border border-greenx/20 bg-greenx/10 px-5 py-4 text-sm text-green-100 leading-7"
-          : "mb-6 rounded-3xl border border-orange-300/20 bg-orange-400/10 px-5 py-4 text-sm text-orange-100 leading-7";
-        serviceNotice.innerHTML = isOpen
-          ? "Pelayanan sedang <b>terbuka</b>. Silakan kirim pengaduan Anda. Jam layanan aktif sampai <b>16.00 WITA</b>."
-          : "Pelayanan sedang <b>tutup</b>. Form pengaduan hanya bisa dikirim pukul <b>08.00–16.00 WITA</b>.";
-      }
-
-      updateSubmitButtonState(false);
-    }
-
-    function statusBadge(status) {
-      if (status === "Selesai") return "bg-greenx/10 text-green-200";
-      if (status === "Diproses") return "bg-bluex/10 text-blue-200";
-      return "bg-orangex/10 text-orange-200";
-    }
-
-    function setStats(stats) {
-      totalCount = stats.total || 0;
-      todayCount = stats.today || 0;
-      waitCount = stats.wait || 0;
-      dosenCount = stats.dosen || 0;
-
-      if (heroTotal) heroTotal.textContent = totalCount;
-      if (heroDosen) heroDosen.textContent = stats.dosen || 0;
-      if (heroMahasiswa) heroMahasiswa.textContent = stats.mahasiswa || 0;
-      if (heroUrgent) heroUrgent.textContent = stats.urgent || 0;
-      if (countToday) countToday.textContent = todayCount;
-      if (countWait) countWait.textContent = waitCount;
-      if (countDosen) countDosen.textContent = dosenCount;
-    }
-
-    function renderRows(rows = []) {
-      const latest = rows.slice(0, 5);
-
-      if (!latest.length) {
-        table.innerHTML = `
-          <tr id="emptyRow" class="border-b border-white/10">
-            <td colspan="6" class="py-10 px-3 text-center">
-              <p class="font-black text-slate-200">Belum ada data pengaduan</p>
-              <p class="text-slate-400 text-sm mt-2">Data dari Google Sheets masih kosong.</p>
-            </td>
-          </tr>
-        `;
-
-        if (heroTicketList) {
-          heroTicketList.innerHTML = `
-            <div class="rounded-3xl p-5 bg-black/20 border border-white/10 text-center">
-              <p class="font-black text-slate-200">Belum ada aduan masuk</p>
-              <p class="text-xs text-slate-400 mt-2">Data akan muncul otomatis setelah form dikirim.</p>
-            </div>
-          `;
-        }
-        return;
-      }
-
-      table.innerHTML = latest.map(row => `
-        <tr class="border-b border-white/10">
-          <td class="py-4 px-3 font-black">${row.kodeAduan || row.identitas || "-"}</td>
-          <td class="py-4 px-3">${row.status || "-"}</td>
-          <td class="py-4 px-3">${row.kategori || "-"}</td>
-          <td class="py-4 px-3">${row.judul || "-"}</td>
-          <td class="py-4 px-3">${row.prioritas || "-"}</td>
-          <td class="py-4 px-3"><span class="px-3 py-1 rounded-full ${statusBadge(row.statusAduan)} font-black text-xs">${row.statusAduan || "Menunggu"}</span></td>
-        </tr>
-      `).join("");
-
-      if (heroTicketList) {
-        heroTicketList.innerHTML = latest.slice(0, 2).map(row => `
-          <div class="rounded-3xl p-4 bg-black/20 border border-white/10 flex items-center justify-between gap-4">
-            <div>
-              <h4 class="font-black">${row.judul || "-"}</h4>
-              <p class="text-xs text-slate-400 mt-1">${row.status || "-"} • ${row.kodeAduan || row.identitas || "-"}</p>
-            </div>
-            <span class="text-xs font-black px-3 py-1 rounded-full ${statusBadge(row.statusAduan)}">${row.statusAduan || "Menunggu"}</span>
-          </div>
-        `).join("");
-      }
-    }
-
-    async function loadSpreadsheetData({ silent = false } = {}) {
-      if (isSyncingSheet) return;
-
-      if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("PASTE_URL_WEB_APP")) {
-        renderStoredTickets();
-        if (!silent) showToast("URL Google Apps Script belum dipasang. Data yang tampil masih dari browser.", "error");
-        return;
-      }
-
-      isSyncingSheet = true;
-
-      try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=list&t=${Date.now()}`, {
-          method: "GET",
-          cache: "no-store"
-        });
-        const result = await response.json();
-
-        if (!result.success) throw new Error(result.message || "Gagal memuat data.");
-
-        const rows = Array.isArray(result.rows) ? result.rows : [];
-        setStats(result.stats || buildStatsFromRows(rows));
-        renderRows(rows);
-        saveStoredTickets(rows);
-        hasLoadedSheetOnce = true;
-      } catch (error) {
-        console.error(error);
-        renderStoredTickets();
-        if (!silent && !hasLoadedSheetOnce) {
-          showToast("Data Google Sheets belum terbaca. Menampilkan data sementara dari browser.", "error");
-        }
-      } finally {
-        isSyncingSheet = false;
-      }
-    }
-
-    updateServiceTime();
-    setInterval(updateServiceTime, 30000);
-    loadSpreadsheetData({ silent: false });
-    setInterval(() => loadSpreadsheetData({ silent: true }), SHEET_REFRESH_INTERVAL);
-
-
-    form.addEventListener("submit", async function (event) {
-      event.preventDefault();
-
-      updateServiceTime();
-
-      if (!serviceIsOpen) {
-        showToast("Pelayanan sedang tutup. Form hanya bisa dikirim pukul 08.00–16.00 WITA.", "error");
-        return;
-      }
-
-      if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("PASTE_URL_WEB_APP")) {
-        showToast("URL Google Apps Script belum dipasang di index.html.", "error");
-        return;
-      }
-
-      const data = {
-        nama: document.getElementById("nama").value.trim(),
-        status: document.getElementById("status").value,
-        identitas: document.getElementById("identitas").value.trim(),
-        kontak: document.getElementById("kontak").value.trim(),
-        prodi: document.getElementById("prodi").value.trim(),
-        kategori: document.getElementById("kategori").value,
-        prioritas: document.getElementById("prioritas").value,
-        judul: document.getElementById("judul").value.trim(),
-        detail: document.getElementById("detail").value.trim(),
-        userAgent: navigator.userAgent
-      };
-
-      setLoading(true);
-
-      try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(result.message || "Gagal menyimpan data.");
-        }
-
-        addLocalRow(data, result.kodeAduan);
-        setTimeout(() => loadSpreadsheetData({ silent: true }), 1200);
-        form.reset();
-        identityLabel.textContent = "Stambuk / NIM / NIDN / NIP";
-        identityInput.placeholder = "Contoh mahasiswa: F5522530008 / dosen: NIDN atau NIP";
-
-        showToast(`Aduan tersimpan & notif terkirim. Kode: ${result.kodeAduan}`);
-      } catch (error) {
-        console.error(error);
-        showToast("Gagal kirim. Cek URL Apps Script, permission, atau deployment Web App.", "error");
-      } finally {
-        setLoading(false);
-      }
-    });
+    function showToast(message,type="success"){toast.textContent=message; const base="fixed right-5 bottom-5 transition z-[90] rounded-2xl font-black px-5 py-4 shadow-card max-w-[calc(100%-40px)]"; toast.className=base+(type==="error"?" bg-redx text-white":type==="warning"?" bg-orangex text-orange-950":" bg-greenx text-green-950"); toast.classList.remove("translate-y-28","opacity-0"); toast.classList.add("translate-y-0","opacity-100"); setTimeout(()=>{toast.classList.add("translate-y-28","opacity-0"); toast.classList.remove("translate-y-0","opacity-100")},4200);}
+    function hasValidScriptUrl(){return GOOGLE_SCRIPT_URL && !GOOGLE_SCRIPT_URL.includes("PASTE_URL_WEB_APP");}
+    function setLoading(v){isSending=v; submitBtn.disabled=v||!isServiceOpen; submitBtn.classList.toggle("opacity-70",v||!isServiceOpen); submitBtn.classList.toggle("cursor-not-allowed",v||!isServiceOpen); submitText.textContent=v?"Mengirim...":isServiceOpen?"Kirim ke Spreadsheet":"Pelayanan Tutup"; submitLoader.classList.toggle("hidden",!v);}
+    function getWitaDate(){const n=new Date(),u=n.getTime()+n.getTimezoneOffset()*60000; return new Date(u+8*60*60*1000);}
+    function updateServiceTime(){const w=getWitaDate(),h=w.getHours(),m=w.getMinutes(); isServiceOpen=h>=SERVICE_OPEN_HOUR&&h<SERVICE_CLOSE_HOUR; if(witaClock)witaClock.textContent=`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`; if(serviceStatusText){serviceStatusText.textContent=isServiceOpen?"Pelayanan sedang terbuka":"Pelayanan sedang tertutup"; serviceStatusText.classList.toggle("text-green-200",isServiceOpen); serviceStatusText.classList.toggle("text-orange-200",!isServiceOpen);} if(serviceStatusMini){serviceStatusMini.textContent=isServiceOpen?"BUKA":"TUTUP"; serviceStatusMini.classList.toggle("text-green-200",isServiceOpen); serviceStatusMini.classList.toggle("text-orange-200",!isServiceOpen);} if(heroStatusDot){heroStatusDot.classList.toggle("bg-greenx",isServiceOpen); heroStatusDot.classList.toggle("bg-orangex",!isServiceOpen);} if(formServiceBadge){formServiceBadge.textContent=isServiceOpen?"ONLINE":"TUTUP"; formServiceBadge.className=isServiceOpen?"hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-cyanx/10 border border-cyanx/20 text-cyan-200 text-xs font-black":"hidden sm:inline-flex shrink-0 px-3 py-2 rounded-full bg-orangex/10 border border-orangex/25 text-orange-200 text-xs font-black";} if(submitHint)submitHint.textContent=isServiceOpen?"Data akan masuk ke Google Sheets dan mengirim notifikasi email ke admin akademik.":"Pelayanan sedang tutup. Form hanya bisa dikirim pukul 08.00–16.00 WITA."; setLoading(isSending);}
+    function statusBadge(s){s=String(s||"").trim().toLowerCase(); if(s==="selesai")return"bg-greenx/10 text-green-200"; if(s==="diproses")return"bg-bluex/10 text-blue-200"; if(s==="ditolak")return"bg-redx/10 text-red-200"; return"bg-orangex/10 text-orange-200";}
+    function priorityClass(p){p=String(p||"").trim().toLowerCase(); if(p==="urgent")return"text-orange-200 font-black"; if(p==="tinggi")return"text-red-200 font-black"; if(p==="sedang")return"text-blue-200 font-black"; return"text-slate-200";}
+    function setStats(s={}){heroTotal.textContent=s.total||0; heroDosen.textContent=s.dosen||0; heroMahasiswa.textContent=s.mahasiswa||0; heroUrgent.textContent=s.urgent||0; countToday.textContent=s.today||0; countWait.textContent=s.wait||0; countDone.textContent=s.done||0;}
+    function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
+    function renderRows(rows=[]){const latest=rows.slice(0,8); if(!latest.length){table.innerHTML=`<tr id="emptyRow" class="border-b border-white/10"><td colspan="7" class="py-10 px-3 text-center"><p class="font-black text-slate-200">Belum ada data pengaduan</p><p class="text-slate-400 text-sm mt-2">Data dari Google Sheets masih kosong atau belum berhasil dimuat.</p></td></tr>`; heroTicketList.innerHTML=`<div class="rounded-3xl p-5 bg-black/20 border border-white/10 text-center"><p class="font-black text-slate-200">Belum ada aduan masuk</p><p class="text-xs text-slate-400 mt-2">Data akan muncul otomatis dari Spreadsheet.</p></div>`; return;} table.innerHTML=latest.map(r=>`<tr class="border-b border-white/10"><td class="py-4 px-3 font-black">${esc(r.kodeAduan||r.identitas||"-")}</td><td class="py-4 px-3">${esc(r.status||"-")}</td><td class="py-4 px-3">${esc(r.kategori||"-")}</td><td class="py-4 px-3"><p class="font-black">${esc(r.judul||"-")}</p><p class="text-xs text-slate-500 mt-1">${esc(r.timestamp||"")}</p></td><td class="py-4 px-3 ${priorityClass(r.prioritas)}">${esc(r.prioritas||"-")}</td><td class="py-4 px-3"><span class="px-3 py-1 rounded-full ${statusBadge(r.statusAduan)} font-black text-xs">${esc(r.statusAduan||"Menunggu")}</span></td><td class="py-4 px-3 text-slate-300">${esc(r.catatanOperator||"-")}</td></tr>`).join(""); heroTicketList.innerHTML=latest.slice(0,3).map(r=>`<div class="rounded-3xl p-4 bg-black/20 border border-white/10 flex items-center justify-between gap-4"><div><h4 class="font-black">${esc(r.judul||"-")}</h4><p class="text-xs text-slate-400 mt-1">${esc(r.status||"-")} • ${esc(r.kodeAduan||r.identitas||"-")}</p></div><span class="text-xs font-black px-3 py-1 rounded-full ${statusBadge(r.statusAduan)}">${esc(r.statusAduan||"Menunggu")}</span></div>`).join("");}
+    function setConnectionStatus(ok,msg){connectionStatus.textContent=msg; connectionStatus.classList.toggle("text-green-200",ok); connectionStatus.classList.toggle("text-red-200",!ok); connectionStatus.classList.remove("text-slate-300");}
+    function setLastSync(){const w=getWitaDate(); lastSyncText.textContent=`Sinkron terakhir: ${String(w.getHours()).padStart(2,"0")}:${String(w.getMinutes()).padStart(2,"0")}:${String(w.getSeconds()).padStart(2,"0")} WITA`;}
+    async function loadSpreadsheetData(toastErr=false){if(!hasValidScriptUrl()){setStats({}); renderRows([]); setConnectionStatus(false,"URL Google Apps Script belum dipasang di index.html."); return;} try{const sep=GOOGLE_SCRIPT_URL.includes("?")?"&":"?",url=`${GOOGLE_SCRIPT_URL}${sep}action=list&t=${Date.now()}`; const res=await fetch(url,{method:"GET"}),result=await res.json(); if(!result.success)throw new Error(result.message||"Gagal memuat data dari Spreadsheet."); setStats(result.stats||{}); renderRows(result.rows||[]); setConnectionStatus(true,"Terhubung ke Google Spreadsheet. Data dashboard otomatis diperbarui."); setLastSync();}catch(e){console.error(e); setStats({}); renderRows([]); setConnectionStatus(false,"Gagal membaca Spreadsheet. Cek URL Apps Script, deployment, dan permission."); if(toastErr)showToast("Gagal membaca data Spreadsheet. Cek Apps Script.","error");}}
+    form.addEventListener("submit",async e=>{e.preventDefault(); updateServiceTime(); if(!isServiceOpen){showToast("Pelayanan sedang tutup. Form hanya bisa dikirim pukul 08.00–16.00 WITA.","warning"); return;} if(!hasValidScriptUrl()){showToast("URL Google Apps Script belum dipasang di index.html.","error"); return;} const data={nama:document.getElementById("nama").value.trim(),status:document.getElementById("status").value,identitas:document.getElementById("identitas").value.trim(),kontak:document.getElementById("kontak").value.trim(),prodi:document.getElementById("prodi").value.trim(),kategori:document.getElementById("kategori").value,prioritas:document.getElementById("prioritas").value,judul:document.getElementById("judul").value.trim(),detail:document.getElementById("detail").value.trim(),userAgent:navigator.userAgent}; setLoading(true); try{const response=await fetch(GOOGLE_SCRIPT_URL,{method:"POST",mode:"cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(data)}); const result=await response.json(); if(!result.success)throw new Error(result.message||"Gagal menyimpan data."); form.reset(); identityLabel.textContent="Stambuk / NIM / NIDN / NIP"; identityInput.placeholder="Contoh mahasiswa: F5522530008 / dosen: NIDN atau NIP"; updateKategoriOptions(""); showToast(`Aduan tersimpan. Kode: ${result.kodeAduan}`); await loadSpreadsheetData(true);}catch(err){console.error(err); showToast(err.message||"Gagal kirim. Cek Apps Script dan deployment Web App.","error");}finally{setLoading(false);}});
+    updateServiceTime(); setInterval(updateServiceTime,30000); loadSpreadsheetData(false); setInterval(()=>loadSpreadsheetData(false),SHEETS_REFRESH_MS);
   </script>
 </body>
 </html>
