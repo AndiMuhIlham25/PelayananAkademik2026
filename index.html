@@ -221,7 +221,7 @@
 
     function showToast(message,type="success"){toast.textContent=message; const base="fixed right-5 bottom-5 transition z-[90] rounded-2xl font-black px-5 py-4 shadow-card max-w-[calc(100%-40px)]"; toast.className=base+(type==="error"?" bg-redx text-white":type==="warning"?" bg-orangex text-orange-950":" bg-greenx text-green-950"); toast.classList.remove("translate-y-28","opacity-0"); toast.classList.add("translate-y-0","opacity-100"); setTimeout(()=>{toast.classList.add("translate-y-28","opacity-0"); toast.classList.remove("translate-y-0","opacity-100")},4200);}
     function hasValidScriptUrl(){return GOOGLE_SCRIPT_URL && !GOOGLE_SCRIPT_URL.includes("PASTE_URL_WEB_APP");}
-    function setLoading(v){isSending=v; submitBtn.disabled=v||!isServiceOpen; submitBtn.classList.toggle("opacity-70",v||!isServiceOpen); submitBtn.classList.toggle("cursor-not-allowed",v||!isServiceOpen); submitText.textContent=v?"Mengirim...":isServiceOpen?"Kirim ke Spreadsheet":"Pelayanan Tutup"; submitLoader.classList.toggle("hidden",!v);}
+    function setLoading(v){isSending=v; submitBtn.disabled=v||!isServiceOpen; submitBtn.classList.toggle("opacity-70",v||!isServiceOpen); submitBtn.classList.toggle("cursor-not-allowed",v||!isServiceOpen); submitText.textContent=v?"Mengirim...":isServiceOpen?"Kirim Pengaduan":"Pelayanan Tutup"; submitLoader.classList.toggle("hidden",!v);}
     function getWitaDate(){const n=new Date(),u=n.getTime()+n.getTimezoneOffset()*60000; return new Date(u+8*60*60*1000);}
     function updateServiceTime(){
       const w=getWitaDate(),h=w.getHours(),menit=w.getMinutes(),detik=w.getSeconds();
